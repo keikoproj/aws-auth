@@ -11,4 +11,4 @@ GIT_TAG=$(shell git rev-parse --short HEAD)
 
 build:
 	CGO_ENABLED=0 go build ${LDFLAGS} -o bin/aws-auth github.com/eytan-avisror/aws-auth/cmd
-	chmod +x bin/eks-bootstrapper
+	chmod +x bin/aws-auth

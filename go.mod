@@ -1,4 +1,4 @@
-module github.com/eytan-avisror/eks-bootstrapper
+module github.com/eytan-avisror/aws-auth
 
 go 1.12
 
