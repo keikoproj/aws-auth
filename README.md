@@ -42,8 +42,8 @@ $ kubectl get configmap aws-auth -n kube-system -o yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-
-apiVersion: v1
+    name: aws-auth
+    namespace: kube-system
 data:
   mapRoles: |
     - rolearn: arn:aws:iam::555555555555:role/devel-worker-nodes-NodeInstanceRole-74RF4UBDUKL6
@@ -69,7 +69,7 @@ $ aws-auth remove --mapusers --userarn arn:aws:iam::555555555555:user/a-user
 removed arn:aws:iam::555555555555:user/a-user from aws-auth
 ```
 
-Remove by full match (only mapUsers[0] will be removed)
+Remove by full match (only `mapUsers[0]` will be removed)
 
 ```text
 $ aws-auth remove --mapusers --userarn arn:aws:iam::555555555555:user/a-user --username admin --groups system:masters
