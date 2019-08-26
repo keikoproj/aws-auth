@@ -16,13 +16,13 @@ limitations under the License.
 package mapper
 
 import (
-	"fmt"
-	"os"
+	"log"
+	"reflect"
 )
 
 // Upsert update or inserts by rolearn
-func (b *Bootstrapper) Upsert(args *UpsertArguments) error {
-	args.validate()
+func (b *AuthMapper) Upsert(args *UpsertArguments) error {
+	args.Validate()
 	var resource = NewAuthMap(args.RoleARN, args.Username, args.Groups)
 
 	// Read the config map and return an AuthMap
@@ -32,11 +32,28 @@ func (b *Bootstrapper) Upsert(args *UpsertArguments) error {
 	}
 
 	if args.MapRoles {
-		upsertMapRole(&authData, resource)
+		newMap, ok := upsertRole(authData.MapRoles, resource)
+		//authData.AddUniqueMapRole(resource)
+
+		if ok {
+			log.Printf("role %v has been updated\n", resource.RoleARN)
+		} else {
+			log.Printf("no updates needed to %v\n", resource.RoleARN)
+		}
+		authData.SetMapRoles(newMap)
 	}
 
 	if args.MapUsers {
-		upsertMapUser(&authData, resource)
+		newMap, ok := upsertRole(authData.MapUsers, resource)
+
+		//authData.AddUniqueMapRole(resource)
+
+		if ok {
+			log.Printf("role %v has been updated\n", resource.RoleARN)
+		} else {
+			log.Printf("no updates needed to %v\n", resource.RoleARN)
+		}
+		authData.SetMapUsers(newMap)
 	}
 
 	// Update the config map and return an AuthMap
@@ -48,57 +65,28 @@ func (b *Bootstrapper) Upsert(args *UpsertArguments) error {
 	return nil
 }
 
-func upsertMapRole(authMap *AwsAuthData, resource *AuthMap) {
+func upsertRole(authMaps []*AuthMap, resource *AuthMap) ([]*AuthMap, bool) {
 	var match bool
-	for _, existing := range authMap.MapRoles {
+	var updated bool
+	for _, existing := range authMaps {
+		// Update
 		if existing.RoleARN == resource.RoleARN {
 			match = true
-			existing.SetGroups(resource.Groups)
-			existing.SetUsername(resource.Username)
+			if !reflect.DeepEqual(existing.Groups, resource.Groups) {
+				existing.SetGroups(resource.Groups)
+				updated = true
+			}
+			if existing.Username != resource.Username {
+				existing.SetUsername(resource.Username)
+				updated = true
+			}
 		}
 	}
+
+	// Insert
 	if !match {
-		authMap.AddUniqueMapRole(resource)
+		updated = true
+		authMaps = append(authMaps, resource)
 	}
-}
-
-func upsertMapUser(authMap *AwsAuthData, resource *AuthMap) {
-	var match bool
-	for _, existing := range authMap.MapRoles {
-		if existing.RoleARN == resource.RoleARN {
-			match = true
-			existing.SetGroups(resource.Groups)
-			existing.SetUsername(resource.Username)
-		}
-	}
-	if !match {
-		authMap.AddUniqueMapUser(resource)
-	}
-}
-
-func (args *UpsertArguments) validate() {
-	if args.RoleARN == "" {
-		fmt.Println("error: --rolearn not provided")
-		os.Exit(1)
-	}
-
-	if len(args.Groups) == 0 {
-		fmt.Println("error: --groups not provided")
-		os.Exit(1)
-	}
-
-	if args.Username == "" {
-		fmt.Println("error: --username not provided")
-		os.Exit(1)
-	}
-
-	if args.MapUsers && args.MapRoles {
-		fmt.Println("error: --mapusers and --maproles are mutually exclusive")
-		os.Exit(1)
-	}
-
-	if !args.MapUsers && !args.MapRoles {
-		fmt.Println("error: must select --mapusers or --maproles")
-		os.Exit(1)
-	}
+	return authMaps, updated
 }

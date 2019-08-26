@@ -106,7 +106,7 @@ func someFunc(client kubernetes.Interface) error {
         },
     }
 
-    err = awsAuth.Upsert(myUpsertRole)
+    err = awsAuth.Upsert(myUpsertRole, false)
     if err != nil {
         return err
     }

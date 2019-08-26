@@ -16,20 +16,30 @@ limitations under the License.
 package mapper
 
 import (
-	"fmt"
-	"reflect"
+	"io/ioutil"
+	"log"
 
 	"k8s.io/client-go/kubernetes"
 )
 
-type Bootstrapper struct {
-	KubernetesClient kubernetes.Interface
+func init() {
+	log.SetFlags(0)
+
 }
 
-func New(client kubernetes.Interface) *Bootstrapper {
-	var bootstrapper = &Bootstrapper{}
-	bootstrapper.KubernetesClient = client
-	return bootstrapper
+type AuthMapper struct {
+	KubernetesClient kubernetes.Interface
+	LoggingEnabled   bool
+}
+
+func New(client kubernetes.Interface, isCommandline bool) *AuthMapper {
+	var mapper = &AuthMapper{}
+	mapper.KubernetesClient = client
+
+	if !isCommandline {
+		log.SetOutput(ioutil.Discard)
+	}
+	return mapper
 }
 
 // AwsAuthData represents the data of the aws-auth configmap
@@ -38,104 +48,19 @@ type AwsAuthData struct {
 	MapUsers []*AuthMap `yaml:"mapUsers"`
 }
 
-// AddUniqueMapRole adds a unique AuthMap into MapRoles
-func (m *AwsAuthData) AddUniqueMapRole(authMap *AuthMap) {
-	for _, existingMap := range m.MapRoles {
-		if reflect.DeepEqual(existingMap, authMap) {
-			return
-		}
-	}
-	if authMap.RoleARN == "" || authMap.Username == "" || len(authMap.Groups) == 0 {
-		return
-	}
-	fmt.Printf("added %v to aws-auth\n", authMap.RoleARN)
-	m.MapRoles = append(m.MapRoles, authMap)
+// SetMapRoles sets the MapRoles element
+func (m *AwsAuthData) SetMapRoles(authMap []*AuthMap) {
+	m.MapRoles = authMap
 }
 
-// AddUniqueMapUser adds a unique AuthMap into MapUsers
-func (m *AwsAuthData) AddUniqueMapUser(authMap *AuthMap) {
-	for _, existingMap := range m.MapUsers {
-		if reflect.DeepEqual(existingMap, authMap) {
-			return
-		}
-	}
-	if authMap.RoleARN == "" || authMap.Username == "" || len(authMap.Groups) == 0 {
-		return
-	}
-	fmt.Printf("added %v to aws-auth\n", authMap.RoleARN)
-	m.MapUsers = append(m.MapUsers, authMap)
+// SetMapUsers sets the MapUsers element
+func (m *AwsAuthData) SetMapUsers(authMap []*AuthMap) {
+	m.MapUsers = authMap
 }
 
 // RemoveMapRole removes an auth map from MapRoles
-func (m *AwsAuthData) RemoveMapRole(authMap *AuthMap) {
-	var newMap []*AuthMap
-	var match bool
-
-	for _, existingMap := range m.MapRoles {
-		if existingMap.RoleARN == authMap.RoleARN {
-			match = true
-			if len(authMap.Groups) != 0 {
-				if reflect.DeepEqual(existingMap.Groups, authMap.Groups) {
-					match = true
-				} else {
-					match = false
-				}
-			}
-			if authMap.Username != "" {
-				if authMap.Username == existingMap.Username {
-					match = true
-				} else {
-					match = false
-				}
-			}
-		}
-		if !match {
-			newMap = append(newMap, existingMap)
-		}
-	}
-
-	if len(m.MapRoles) == len(newMap) {
-		fmt.Printf("failed to remove %v, could not find exact match\n", authMap.RoleARN)
-	} else {
-		fmt.Printf("removed %v from aws-auth\n", authMap.RoleARN)
-	}
-
-	m.MapRoles = newMap
-}
-
-// RemoveMapUser removes an auth map from Mapusers
-func (m *AwsAuthData) RemoveMapUser(authMap *AuthMap) {
-	var newMap []*AuthMap
-	var match bool
-
-	for _, existingMap := range m.MapUsers {
-		if existingMap.RoleARN == authMap.RoleARN {
-			match = true
-			if len(authMap.Groups) != 0 {
-				if reflect.DeepEqual(existingMap.Groups, authMap.Groups) {
-					match = true
-				} else {
-					match = false
-				}
-			}
-			if authMap.Username != "" {
-				if authMap.Username == existingMap.Username {
-					match = true
-				} else {
-					match = false
-				}
-			}
-		}
-		if !match {
-			newMap = append(newMap, existingMap)
-		}
-	}
-	if len(m.MapUsers) == len(newMap) {
-		fmt.Printf("failed to remove %v, could not find exact match\n", authMap.RoleARN)
-	} else {
-		fmt.Printf("removed %v from aws-auth\n", authMap.RoleARN)
-	}
-	m.MapUsers = newMap
+func (m *AwsAuthData) RemoveMapRole(authMap []*AuthMap) {
+	m.MapRoles = authMap
 }
 
 // RemoveArguments are the arguments for removing a mapRole or mapUsers
@@ -148,6 +73,20 @@ type RemoveArguments struct {
 	Groups         []string
 }
 
+func (args *RemoveArguments) Validate() {
+	if args.RoleARN == "" {
+		log.Fatal("error: --rolearn not provided")
+	}
+
+	if args.MapUsers && args.MapRoles {
+		log.Fatal("error: --mapusers and --maproles are mutually exclusive")
+	}
+
+	if !args.MapUsers && !args.MapRoles {
+		log.Fatal("error: must select --mapusers or --maproles")
+	}
+}
+
 // UpsertArguments are the arguments for upserting a mapRole or mapUsers
 type UpsertArguments struct {
 	KubeconfigPath string
@@ -156,6 +95,28 @@ type UpsertArguments struct {
 	Username       string
 	RoleARN        string
 	Groups         []string
+}
+
+func (args *UpsertArguments) Validate() {
+	if args.RoleARN == "" {
+		log.Fatal("error: --rolearn not provided")
+	}
+
+	if len(args.Groups) == 0 {
+		log.Fatal("error: --groups not provided")
+	}
+
+	if args.Username == "" {
+		log.Fatal("error: --username not provided")
+	}
+
+	if args.MapUsers && args.MapRoles {
+		log.Fatal("error: --mapusers and --maproles are mutually exclusive")
+	}
+
+	if !args.MapUsers && !args.MapRoles {
+		log.Fatal("error: must select --mapusers or --maproles")
+	}
 }
 
 // AuthMap is the basic structure of an authentication object

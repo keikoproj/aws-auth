@@ -30,7 +30,7 @@ var removeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		k, err := getKubernetesClient(removeArgs.KubeconfigPath)
 		die(err)
-		worker := mapper.New(k)
+		worker := mapper.New(k, true)
 		err = worker.Remove(removeArgs)
 		die(err)
 	},

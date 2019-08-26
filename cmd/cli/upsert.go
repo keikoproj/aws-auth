@@ -30,7 +30,7 @@ var upsertCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		k, err := getKubernetesClient(upsertArgs.KubeconfigPath)
 		die(err)
-		worker := mapper.New(k)
+		worker := mapper.New(k, true)
 		err = worker.Upsert(upsertArgs)
 		die(err)
 	},

@@ -22,7 +22,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	awsAuth := awsauth.New(client)
+	awsAuth := awsauth.New(client, false)
 	myUpsertRole := &awsauth.UpsertArguments{
 		MapRoles: true,
 		RoleARN:  "arn:aws:iam::555555555555:role/my-new-node-group-NodeInstanceRole-74RF4UBDUKL6",

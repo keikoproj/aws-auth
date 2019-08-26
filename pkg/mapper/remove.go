@@ -16,13 +16,13 @@ limitations under the License.
 package mapper
 
 import (
-	"fmt"
-	"os"
+	"log"
+	"reflect"
 )
 
 // Remove removes by match of provided arguments
-func (b *Bootstrapper) Remove(args *RemoveArguments) error {
-	args.validate()
+func (b *AuthMapper) Remove(args *RemoveArguments) error {
+	args.Validate()
 	var resource = NewAuthMap(args.RoleARN, args.Username, args.Groups)
 
 	// Read the config map and return an AuthMap
@@ -32,11 +32,27 @@ func (b *Bootstrapper) Remove(args *RemoveArguments) error {
 	}
 
 	if args.MapRoles {
-		removeMapRole(&authData, resource)
+		newMap := removeRole(authData.MapRoles, resource)
+
+		if len(authData.MapRoles) == len(newMap) {
+			log.Printf("failed to remove %v, could not find exact match\n", resource.RoleARN)
+		} else {
+			log.Printf("removed %v from aws-auth\n", resource.RoleARN)
+		}
+		authData.SetMapRoles(newMap)
+
 	}
 
 	if args.MapUsers {
-		removeMapUser(&authData, resource)
+		newMap := removeRole(authData.MapUsers, resource)
+
+		if len(authData.MapUsers) == len(newMap) {
+			log.Printf("failed to remove %v, could not find exact match\n", resource.RoleARN)
+		} else {
+			log.Printf("removed %v from aws-auth\n", resource.RoleARN)
+		}
+		authData.SetMapUsers(newMap)
+
 	}
 
 	// Update the config map and return an AuthMap
@@ -48,27 +64,32 @@ func (b *Bootstrapper) Remove(args *RemoveArguments) error {
 	return nil
 }
 
-func removeMapRole(authMap *AwsAuthData, resource *AuthMap) {
-	authMap.RemoveMapRole(resource)
-}
+func removeRole(authMaps []*AuthMap, targetMap *AuthMap) []*AuthMap {
+	var newMap []*AuthMap
+	var match bool
 
-func removeMapUser(authMap *AwsAuthData, resource *AuthMap) {
-	authMap.RemoveMapUser(resource)
-}
-
-func (args *RemoveArguments) validate() {
-	if args.RoleARN == "" {
-		fmt.Println("error: --rolearn not provided")
-		os.Exit(1)
+	for _, existingMap := range authMaps {
+		match = false
+		if existingMap.RoleARN == targetMap.RoleARN {
+			match = true
+			if len(targetMap.Groups) != 0 {
+				if reflect.DeepEqual(existingMap.Groups, targetMap.Groups) {
+					match = true
+				} else {
+					match = false
+				}
+			}
+			if targetMap.Username != "" {
+				if existingMap.Username == targetMap.Username {
+					match = true
+				} else {
+					match = false
+				}
+			}
+		}
+		if !match {
+			newMap = append(newMap, existingMap)
+		}
 	}
-
-	if args.MapUsers && args.MapRoles {
-		fmt.Println("error: --mapusers and --maproles are mutually exclusive")
-		os.Exit(1)
-	}
-
-	if !args.MapUsers && !args.MapRoles {
-		fmt.Println("error: must select --mapusers or --maproles")
-		os.Exit(1)
-	}
+	return newMap
 }
