@@ -3,13 +3,13 @@
 
 ## Install
 
-```
+```text
 $ go get github.com/eytan-avisror/aws-auth
 ```
 
 ## Usage from command line
 
-```
+```text
 $ aws-auth
 aws-auth modifies the aws-auth configmap on eks clusters
 
@@ -27,7 +27,8 @@ Flags:
 ```
 
 Given a config map with the following data:
-```
+
+```text
 $ kubectl get configmap aws-auth -n kube-system -o yaml
 apiVersion: v1
 kind: ConfigMap
@@ -54,18 +55,42 @@ data:
 
 Remove all access belonging to an ARN (both mapUser roles will be removed)
 
-```
+```text
 $ aws-auth remove --mapusers --userarn arn:aws:iam::555555555555:user/a-user
+removed arn:aws:iam::555555555555:user/a-user from aws-auth
 ```
 
 Remove by full match (only mapUsers[0] will be removed)
-```
+
+```text
 $ aws-auth remove --mapusers --userarn arn:aws:iam::555555555555:user/a-user --username admin --groups system:masters
+removed arn:aws:iam::555555555555:user/a-user from aws-auth
 ```
 
 Bootstrap a new node group role
-```
+
+```text
 $ aws-auth uspert --maproles --userarn arn:aws:iam::555555555555:role/my-new-node-group-NodeInstanceRole-74RF4UBDUKL6 --username system:node:{{EC2PrivateDNSName}} --groups system:bootstrappers system:nodes
+added arn:aws:iam::555555555555:role/my-new-node-group-NodeInstanceRole-74RF4UBDUKL6 to aws-auth
 ```
 
 ## Usage as a library
+
+```go
+func someFunc() error {
+    myUpsertRole := &awsauth.UpsertArguments{
+        MapRoles: true,
+        RoleARN:  "arn:aws:iam::555555555555:role/my-new-node-group-NodeInstanceRole-74RF4UBDUKL6",
+        Username: "system:node:{{EC2PrivateDNSName}}",
+        Groups: []string{
+            "system:bootstrappers",
+            "system:nodes",
+        },
+    }
+
+    err = awsAuth.Upsert(myUpsertRole)
+    if err != nil {
+        return err
+    }
+}
+```
