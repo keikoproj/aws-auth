@@ -23,7 +23,6 @@ import (
 // Remove removes by match of provided arguments
 func (b *AuthMapper) Remove(args *RemoveArguments) error {
 	args.Validate()
-	var resource = NewAuthMap(args.RoleARN, args.Username, args.Groups)
 
 	// Read the config map and return an AuthMap
 	authData, configMap, err := ReadAuthMap(b.KubernetesClient)
@@ -32,27 +31,31 @@ func (b *AuthMapper) Remove(args *RemoveArguments) error {
 	}
 
 	if args.MapRoles {
-		newMap := removeRole(authData.MapRoles, resource)
+		var rolesResource = NewRolesAuthMap(args.RoleARN, args.Username, args.Groups)
 
-		if len(authData.MapRoles) == len(newMap) {
-			log.Printf("failed to remove %v, could not find exact match\n", resource.RoleARN)
+		newMap, ok := removeRole(authData.MapRoles, rolesResource)
+		if ok {
+			log.Printf("removed %v from aws-auth\n", rolesResource.RoleARN)
+
 		} else {
-			log.Printf("removed %v from aws-auth\n", resource.RoleARN)
+			log.Printf("failed to remove %v, could not find exact match\n", rolesResource.RoleARN)
 		}
-		authData.SetMapRoles(newMap)
 
+		authData.SetMapRoles(newMap)
 	}
 
 	if args.MapUsers {
-		newMap := removeRole(authData.MapUsers, resource)
+		var usersResource = NewUsersAuthMap(args.RoleARN, args.Username, args.Groups)
 
-		if len(authData.MapUsers) == len(newMap) {
-			log.Printf("failed to remove %v, could not find exact match\n", resource.RoleARN)
+		newMap, ok := removeUser(authData.MapUsers, usersResource)
+
+		if ok {
+			log.Printf("failed to remove %v, could not find exact match\n", usersResource.UserARN)
 		} else {
-			log.Printf("removed %v from aws-auth\n", resource.RoleARN)
+			log.Printf("removed %v from aws-auth\n", usersResource.UserARN)
 		}
-		authData.SetMapUsers(newMap)
 
+		authData.SetMapUsers(newMap)
 	}
 
 	// Update the config map and return an AuthMap
@@ -64,9 +67,10 @@ func (b *AuthMapper) Remove(args *RemoveArguments) error {
 	return nil
 }
 
-func removeRole(authMaps []*AuthMap, targetMap *AuthMap) []*AuthMap {
-	var newMap []*AuthMap
+func removeRole(authMaps []*RolesAuthMap, targetMap *RolesAuthMap) ([]*RolesAuthMap, bool) {
+	var newMap []*RolesAuthMap
 	var match bool
+	var removed bool
 
 	for _, existingMap := range authMaps {
 		match = false
@@ -87,9 +91,44 @@ func removeRole(authMaps []*AuthMap, targetMap *AuthMap) []*AuthMap {
 				}
 			}
 		}
-		if !match {
+		if match {
+			removed = true
+		} else {
 			newMap = append(newMap, existingMap)
 		}
 	}
-	return newMap
+	return newMap, removed
+}
+
+func removeUser(authMaps []*UsersAuthMap, targetMap *UsersAuthMap) ([]*UsersAuthMap, bool) {
+	var newMap []*UsersAuthMap
+	var match bool
+	var removed bool
+
+	for _, existingMap := range authMaps {
+		match = false
+		if existingMap.UserARN == targetMap.UserARN {
+			match = true
+			if len(targetMap.Groups) != 0 {
+				if reflect.DeepEqual(existingMap.Groups, targetMap.Groups) {
+					match = true
+				} else {
+					match = false
+				}
+			}
+			if targetMap.Username != "" {
+				if existingMap.Username == targetMap.Username {
+					match = true
+				} else {
+					match = false
+				}
+			}
+		}
+		if match {
+			removed = true
+		} else {
+			newMap = append(newMap, existingMap)
+		}
+	}
+	return newMap, removed
 }

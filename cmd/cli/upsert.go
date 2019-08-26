@@ -25,8 +25,8 @@ var upsertArgs = &mapper.UpsertArguments{}
 // upsertCmd represents the base command when called without any subcommands
 var upsertCmd = &cobra.Command{
 	Use:   "upsert",
-	Short: "upsert updates or inserts an auth-map to mapRoles",
-	Long:  `upsert updates or inserts an auth-map to mapRoles`,
+	Short: "upsert updates or inserts a user or role to the aws-auth configmap",
+	Long:  `upsert updates or inserts a user or role to the aws-auth configmap`,
 	Run: func(cmd *cobra.Command, args []string) {
 		k, err := getKubernetesClient(upsertArgs.KubeconfigPath)
 		die(err)
@@ -41,7 +41,8 @@ func init() {
 	upsertCmd.Flags().StringVar(&upsertArgs.KubeconfigPath, "kubeconfig", "", "Path to kubeconfig")
 	upsertCmd.Flags().StringVar(&upsertArgs.Username, "username", "", "Username to upsert")
 	upsertCmd.Flags().StringVar(&upsertArgs.RoleARN, "rolearn", "", "Role ARN to upsert")
+	upsertCmd.Flags().StringVar(&upsertArgs.UserARN, "userarn", "", "User ARN to upsert")
 	upsertCmd.Flags().StringSliceVar(&upsertArgs.Groups, "groups", []string{}, "Groups to upsert")
-	upsertCmd.Flags().BoolVar(&upsertArgs.MapRoles, "maproles", false, "Upsert a mapRoles")
-	upsertCmd.Flags().BoolVar(&upsertArgs.MapUsers, "mapusers", false, "Upsert a mapUsers")
+	upsertCmd.Flags().BoolVar(&upsertArgs.MapRoles, "maproles", false, "Upsert a role")
+	upsertCmd.Flags().BoolVar(&upsertArgs.MapUsers, "mapusers", false, "Upsert a user")
 }

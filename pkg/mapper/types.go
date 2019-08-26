@@ -44,23 +44,18 @@ func New(client kubernetes.Interface, isCommandline bool) *AuthMapper {
 
 // AwsAuthData represents the data of the aws-auth configmap
 type AwsAuthData struct {
-	MapRoles []*AuthMap `yaml:"mapRoles"`
-	MapUsers []*AuthMap `yaml:"mapUsers"`
+	MapRoles []*RolesAuthMap `yaml:"mapRoles"`
+	MapUsers []*UsersAuthMap `yaml:"mapUsers"`
 }
 
 // SetMapRoles sets the MapRoles element
-func (m *AwsAuthData) SetMapRoles(authMap []*AuthMap) {
+func (m *AwsAuthData) SetMapRoles(authMap []*RolesAuthMap) {
 	m.MapRoles = authMap
 }
 
 // SetMapUsers sets the MapUsers element
-func (m *AwsAuthData) SetMapUsers(authMap []*AuthMap) {
+func (m *AwsAuthData) SetMapUsers(authMap []*UsersAuthMap) {
 	m.MapUsers = authMap
-}
-
-// RemoveMapRole removes an auth map from MapRoles
-func (m *AwsAuthData) RemoveMapRole(authMap []*AuthMap) {
-	m.MapRoles = authMap
 }
 
 // RemoveArguments are the arguments for removing a mapRole or mapUsers
@@ -70,12 +65,17 @@ type RemoveArguments struct {
 	MapUsers       bool
 	Username       string
 	RoleARN        string
+	UserARN        string
 	Groups         []string
 }
 
 func (args *RemoveArguments) Validate() {
-	if args.RoleARN == "" {
+	if args.RoleARN == "" && args.MapRoles {
 		log.Fatal("error: --rolearn not provided")
+	}
+
+	if args.UserARN == "" && args.MapUsers {
+		log.Fatal("error: --userarn not provided")
 	}
 
 	if args.MapUsers && args.MapRoles {
@@ -94,12 +94,17 @@ type UpsertArguments struct {
 	MapUsers       bool
 	Username       string
 	RoleARN        string
+	UserARN        string
 	Groups         []string
 }
 
 func (args *UpsertArguments) Validate() {
-	if args.RoleARN == "" {
+	if args.RoleARN == "" && args.MapRoles {
 		log.Fatal("error: --rolearn not provided")
+	}
+
+	if args.UserARN == "" && args.MapUsers {
+		log.Fatal("error: --userarn not provided")
 	}
 
 	if len(args.Groups) == 0 {
@@ -119,36 +124,70 @@ func (args *UpsertArguments) Validate() {
 	}
 }
 
-// AuthMap is the basic structure of an authentication object
-type AuthMap struct {
+// RolesAuthMap is the basic structure of a mapRoles authentication object
+type RolesAuthMap struct {
 	RoleARN  string   `yaml:"rolearn"`
 	Username string   `yaml:"username"`
 	Groups   []string `yaml:"groups"`
 }
 
-// NewAuthMap returns a new AuthMap
-func NewAuthMap(rolearn, username string, groups []string) *AuthMap {
-	return &AuthMap{
+// UsersAuthMap is the basic structure of a mapUsers authentication object
+type UsersAuthMap struct {
+	UserARN  string   `yaml:"userarn"`
+	Username string   `yaml:"username"`
+	Groups   []string `yaml:"groups"`
+}
+
+// NewRolesAuthMap returns a new NewRolesAuthMap
+func NewRolesAuthMap(rolearn, username string, groups []string) *RolesAuthMap {
+	return &RolesAuthMap{
 		RoleARN:  rolearn,
 		Username: username,
 		Groups:   groups,
 	}
 }
 
-// SetRoleARN sets the RoleARN value
-func (s *AuthMap) SetRoleARN(v string) *AuthMap {
-	s.RoleARN = v
+// NewUsersAuthMap returns a new NewUsersAuthMap
+func NewUsersAuthMap(userarn, username string, groups []string) *UsersAuthMap {
+	return &UsersAuthMap{
+		UserARN:  userarn,
+		Username: username,
+		Groups:   groups,
+	}
+}
+
+// SetUserARN sets the RoleARN value
+func (s *UsersAuthMap) SetUserARN(v string) *UsersAuthMap {
+	s.UserARN = v
 	return s
 }
 
 // SetUsername sets the Username value
-func (s *AuthMap) SetUsername(v string) *AuthMap {
+func (s *UsersAuthMap) SetUsername(v string) *UsersAuthMap {
 	s.Username = v
 	return s
 }
 
 // SetGroups sets the Groups value
-func (s *AuthMap) SetGroups(g []string) *AuthMap {
+func (s *UsersAuthMap) SetGroups(g []string) *UsersAuthMap {
+	s.Groups = g
+	return s
+}
+
+// SetRoleARN sets the RoleARN value
+func (s *RolesAuthMap) SetRoleARN(v string) *RolesAuthMap {
+	s.RoleARN = v
+	return s
+}
+
+// SetUsername sets the Username value
+func (s *RolesAuthMap) SetUsername(v string) *RolesAuthMap {
+	s.Username = v
+	return s
+}
+
+// SetGroups sets the Groups value
+func (s *RolesAuthMap) SetGroups(g []string) *RolesAuthMap {
 	s.Groups = g
 	return s
 }

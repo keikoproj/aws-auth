@@ -25,8 +25,8 @@ var removeArgs = &mapper.RemoveArguments{}
 // deleteCmd represents the base command when called without any subcommands
 var removeCmd = &cobra.Command{
 	Use:   "remove",
-	Short: "remove removes an auth-map from mapRoles or mapUsers",
-	Long:  `remove removes auth-map from mapRoles or mapUsers`,
+	Short: "remove removes a user or role from the aws-auth configmap",
+	Long:  `remove removes a user or role from the aws-auth configmap`,
 	Run: func(cmd *cobra.Command, args []string) {
 		k, err := getKubernetesClient(removeArgs.KubeconfigPath)
 		die(err)
@@ -39,9 +39,10 @@ var removeCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(removeCmd)
 	removeCmd.Flags().StringVar(&removeArgs.KubeconfigPath, "kubeconfig", "", "Kubeconfig path")
-	removeCmd.Flags().StringVar(&removeArgs.Username, "username", "", "Username to upsert")
-	removeCmd.Flags().StringVar(&removeArgs.RoleARN, "rolearn", "", "Role ARN to upsert")
-	removeCmd.Flags().StringSliceVar(&removeArgs.Groups, "groups", []string{}, "Groups to upsert")
-	removeCmd.Flags().BoolVar(&removeArgs.MapRoles, "maproles", false, "Upsert a mapRoles")
-	removeCmd.Flags().BoolVar(&removeArgs.MapUsers, "mapusers", false, "Upsert a mapUsers")
+	removeCmd.Flags().StringVar(&removeArgs.Username, "username", "", "Username to remove")
+	removeCmd.Flags().StringVar(&removeArgs.RoleARN, "rolearn", "", "Role ARN to remove")
+	removeCmd.Flags().StringVar(&removeArgs.UserARN, "userarn", "", "User ARN to remove")
+	removeCmd.Flags().StringSliceVar(&removeArgs.Groups, "groups", []string{}, "Groups to remove")
+	removeCmd.Flags().BoolVar(&removeArgs.MapRoles, "maproles", false, "Removes a role")
+	removeCmd.Flags().BoolVar(&removeArgs.MapUsers, "mapusers", false, "Removes a user")
 }

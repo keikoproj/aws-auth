@@ -23,7 +23,6 @@ import (
 // Upsert update or inserts by rolearn
 func (b *AuthMapper) Upsert(args *UpsertArguments) error {
 	args.Validate()
-	var resource = NewAuthMap(args.RoleARN, args.Username, args.Groups)
 
 	// Read the config map and return an AuthMap
 	authData, configMap, err := ReadAuthMap(b.KubernetesClient)
@@ -32,26 +31,25 @@ func (b *AuthMapper) Upsert(args *UpsertArguments) error {
 	}
 
 	if args.MapRoles {
-		newMap, ok := upsertRole(authData.MapRoles, resource)
-		//authData.AddUniqueMapRole(resource)
+		var roleResource = NewRolesAuthMap(args.RoleARN, args.Username, args.Groups)
 
+		newMap, ok := upsertRole(authData.MapRoles, roleResource)
 		if ok {
-			log.Printf("role %v has been updated\n", resource.RoleARN)
+			log.Printf("role %v has been updated\n", roleResource.RoleARN)
 		} else {
-			log.Printf("no updates needed to %v\n", resource.RoleARN)
+			log.Printf("no updates needed to %v\n", roleResource.RoleARN)
 		}
 		authData.SetMapRoles(newMap)
 	}
 
 	if args.MapUsers {
-		newMap, ok := upsertRole(authData.MapUsers, resource)
+		var userResource = NewUsersAuthMap(args.UserARN, args.Username, args.Groups)
 
-		//authData.AddUniqueMapRole(resource)
-
+		newMap, ok := upsertUser(authData.MapUsers, userResource)
 		if ok {
-			log.Printf("role %v has been updated\n", resource.RoleARN)
+			log.Printf("role %v has been updated\n", userResource.UserARN)
 		} else {
-			log.Printf("no updates needed to %v\n", resource.RoleARN)
+			log.Printf("no updates needed to %v\n", userResource.UserARN)
 		}
 		authData.SetMapUsers(newMap)
 	}
@@ -65,12 +63,38 @@ func (b *AuthMapper) Upsert(args *UpsertArguments) error {
 	return nil
 }
 
-func upsertRole(authMaps []*AuthMap, resource *AuthMap) ([]*AuthMap, bool) {
+func upsertRole(authMaps []*RolesAuthMap, resource *RolesAuthMap) ([]*RolesAuthMap, bool) {
 	var match bool
 	var updated bool
 	for _, existing := range authMaps {
 		// Update
 		if existing.RoleARN == resource.RoleARN {
+			match = true
+			if !reflect.DeepEqual(existing.Groups, resource.Groups) {
+				existing.SetGroups(resource.Groups)
+				updated = true
+			}
+			if existing.Username != resource.Username {
+				existing.SetUsername(resource.Username)
+				updated = true
+			}
+		}
+	}
+
+	// Insert
+	if !match {
+		updated = true
+		authMaps = append(authMaps, resource)
+	}
+	return authMaps, updated
+}
+
+func upsertUser(authMaps []*UsersAuthMap, resource *UsersAuthMap) ([]*UsersAuthMap, bool) {
+	var match bool
+	var updated bool
+	for _, existing := range authMaps {
+		// Update
+		if existing.UserARN == resource.UserARN {
 			match = true
 			if !reflect.DeepEqual(existing.Groups, resource.Groups) {
 				existing.SetGroups(resource.Groups)
