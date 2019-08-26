@@ -1,10 +1,19 @@
+
 # aws-auth
+
 > Makes the management of the aws-auth config map for EKS Kubernetes clusters easier
+
+## Use cases
+
+- make bootstrapping a node group or removing/adding user access on EKS fast and easy
+
+- useful for automation purposes, any workflow that needs to grant IAM access to an EKS cluster can use this library to modify the config map.
 
 ## Install
 
 ```text
 $ go get github.com/eytan-avisror/aws-auth
+$
 ```
 
 ## Usage from command line
@@ -77,7 +86,16 @@ added arn:aws:iam::555555555555:role/my-new-node-group-NodeInstanceRole-74RF4UBD
 ## Usage as a library
 
 ```go
-func someFunc() error {
+
+
+package main
+
+import (
+    awsauth "github.com/eytan-avisror/aws-auth/pkg/mapper"
+)
+
+func someFunc(client kubernetes.Interface) error {
+    awsAuth := awsauth.New(client)
     myUpsertRole := &awsauth.UpsertArguments{
         MapRoles: true,
         RoleARN:  "arn:aws:iam::555555555555:role/my-new-node-group-NodeInstanceRole-74RF4UBDUKL6",
@@ -93,4 +111,5 @@ func someFunc() error {
         return err
     }
 }
+
 ```
