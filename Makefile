@@ -3,12 +3,12 @@
 
 COMMIT=`git rev-parse HEAD`
 BUILD=`date +%FT%T%z`
-LDFLAG_LOCATION=github.com/eytan-avisror/aws-auth/cmd/cli
+LDFLAG_LOCATION=github.com/eytan-avisror/aws-auth
 
 LDFLAGS=-ldflags "-X ${LDFLAG_LOCATION}.buildDate=${BUILD} -X ${LDFLAG_LOCATION}.gitCommit=${COMMIT}"
 
 GIT_TAG=$(shell git rev-parse --short HEAD)
 
 build:
-	CGO_ENABLED=0 go build ${LDFLAGS} -o bin/aws-auth github.com/eytan-avisror/aws-auth/cmd
+	CGO_ENABLED=0 go build ${LDFLAGS} -o bin/aws-auth github.com/eytan-avisror/aws-auth
 	chmod +x bin/aws-auth

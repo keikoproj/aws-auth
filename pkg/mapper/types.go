@@ -48,6 +48,7 @@ func (m *AwsAuthData) AddUniqueMapRole(authMap *AuthMap) {
 	if authMap.RoleARN == "" || authMap.Username == "" || len(authMap.Groups) == 0 {
 		return
 	}
+	fmt.Printf("added %v to aws-auth\n", authMap.RoleARN)
 	m.MapRoles = append(m.MapRoles, authMap)
 }
 
@@ -61,6 +62,7 @@ func (m *AwsAuthData) AddUniqueMapUser(authMap *AuthMap) {
 	if authMap.RoleARN == "" || authMap.Username == "" || len(authMap.Groups) == 0 {
 		return
 	}
+	fmt.Printf("added %v to aws-auth\n", authMap.RoleARN)
 	m.MapUsers = append(m.MapUsers, authMap)
 }
 
