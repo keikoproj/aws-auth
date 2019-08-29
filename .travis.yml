@@ -1,0 +1,17 @@
+language: go
+
+go:
+- 1.12.x
+
+git:
+  depth: 1
+
+install: skip
+
+jobs:
+  include:
+
+    - stage: unit-test
+      script:
+      - go test -v ./... -coverprofile ./coverage.txt
+      - bash <(curl -s https://codecov.io/bash)

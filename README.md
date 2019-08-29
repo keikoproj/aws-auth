@@ -1,5 +1,8 @@
 
 # aws-auth
+[![Build Status](https://travis-ci.org/eytan-avisror/aws-auth.svg?branch=master)](https://travis-ci.org/eytan-avisror/aws-auth)
+[![codecov](https://codecov.io/gh/eytan-avisror/aws-auth/branch/master/graph/badge.svg)](https://codecov.io/gh/eytan-avisror/aws-auth)
+
 
 > Makes the management of the aws-auth config map for EKS Kubernetes clusters easier
 
@@ -112,4 +115,10 @@ func someFunc(client kubernetes.Interface) error {
     }
 }
 
+```
+
+## Run in a container
+
+```shell
+$ docker run -v ~/.kube/:/root/.kube/ -v ~/.aws/:/root/.aws/ aws-auth:latest aws-auth upsert --maproles --rolearn test-1 --username user --groups a-group
 ```
