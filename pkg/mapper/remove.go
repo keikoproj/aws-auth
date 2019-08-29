@@ -16,6 +16,7 @@ limitations under the License.
 package mapper
 
 import (
+	"errors"
 	"log"
 	"reflect"
 )
@@ -32,29 +33,25 @@ func (b *AuthMapper) Remove(args *RemoveArguments) error {
 
 	if args.MapRoles {
 		var rolesResource = NewRolesAuthMap(args.RoleARN, args.Username, args.Groups)
-
 		newMap, ok := removeRole(authData.MapRoles, rolesResource)
-		if ok {
-			log.Printf("removed %v from aws-auth\n", rolesResource.RoleARN)
 
-		} else {
+		if !ok {
 			log.Printf("failed to remove %v, could not find exact match\n", rolesResource.RoleARN)
+			return errors.New("could not find rolemap")
 		}
-
+		log.Printf("removed %v from aws-auth\n", rolesResource.RoleARN)
 		authData.SetMapRoles(newMap)
 	}
 
 	if args.MapUsers {
-		var usersResource = NewUsersAuthMap(args.RoleARN, args.Username, args.Groups)
-
+		var usersResource = NewUsersAuthMap(args.UserARN, args.Username, args.Groups)
 		newMap, ok := removeUser(authData.MapUsers, usersResource)
 
-		if ok {
+		if !ok {
 			log.Printf("failed to remove %v, could not find exact match\n", usersResource.UserARN)
-		} else {
-			log.Printf("removed %v from aws-auth\n", usersResource.UserARN)
+			return errors.New("could not find rolemap")
 		}
-
+		log.Printf("removed %v from aws-auth\n", usersResource.UserARN)
 		authData.SetMapUsers(newMap)
 	}
 

@@ -16,8 +16,10 @@ limitations under the License.
 package mapper
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
+	"strings"
 
 	"k8s.io/client-go/kubernetes"
 )
@@ -131,11 +133,33 @@ type RolesAuthMap struct {
 	Groups   []string `yaml:"groups"`
 }
 
+func (r *RolesAuthMap) String() string {
+	var s strings.Builder
+	s.WriteString(fmt.Sprintf("- rolearn: %v\n  ", r.RoleARN))
+	s.WriteString(fmt.Sprintf("username: %v\n  ", r.Username))
+	s.WriteString("groups:\n")
+	for _, group := range r.Groups {
+		s.WriteString(fmt.Sprintf("  - %v\n", group))
+	}
+	return s.String()
+}
+
 // UsersAuthMap is the basic structure of a mapUsers authentication object
 type UsersAuthMap struct {
 	UserARN  string   `yaml:"userarn"`
 	Username string   `yaml:"username"`
 	Groups   []string `yaml:"groups"`
+}
+
+func (r *UsersAuthMap) String() string {
+	var s strings.Builder
+	s.WriteString(fmt.Sprintf("- userarn: %v\n  ", r.UserARN))
+	s.WriteString(fmt.Sprintf("username: %v\n  ", r.Username))
+	s.WriteString("groups:\n")
+	for _, group := range r.Groups {
+		s.WriteString(fmt.Sprintf("  - %v\n", group))
+	}
+	return s.String()
 }
 
 // NewRolesAuthMap returns a new NewRolesAuthMap
@@ -156,38 +180,26 @@ func NewUsersAuthMap(userarn, username string, groups []string) *UsersAuthMap {
 	}
 }
 
-// SetUserARN sets the RoleARN value
-func (s *UsersAuthMap) SetUserARN(v string) *UsersAuthMap {
-	s.UserARN = v
-	return s
-}
-
 // SetUsername sets the Username value
-func (s *UsersAuthMap) SetUsername(v string) *UsersAuthMap {
-	s.Username = v
-	return s
+func (r *UsersAuthMap) SetUsername(v string) *UsersAuthMap {
+	r.Username = v
+	return r
 }
 
 // SetGroups sets the Groups value
-func (s *UsersAuthMap) SetGroups(g []string) *UsersAuthMap {
-	s.Groups = g
-	return s
-}
-
-// SetRoleARN sets the RoleARN value
-func (s *RolesAuthMap) SetRoleARN(v string) *RolesAuthMap {
-	s.RoleARN = v
-	return s
+func (r *UsersAuthMap) SetGroups(g []string) *UsersAuthMap {
+	r.Groups = g
+	return r
 }
 
 // SetUsername sets the Username value
-func (s *RolesAuthMap) SetUsername(v string) *RolesAuthMap {
-	s.Username = v
-	return s
+func (r *RolesAuthMap) SetUsername(v string) *RolesAuthMap {
+	r.Username = v
+	return r
 }
 
 // SetGroups sets the Groups value
-func (s *RolesAuthMap) SetGroups(g []string) *RolesAuthMap {
-	s.Groups = g
-	return s
+func (r *RolesAuthMap) SetGroups(g []string) *RolesAuthMap {
+	r.Groups = g
+	return r
 }

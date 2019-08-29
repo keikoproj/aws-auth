@@ -12,3 +12,7 @@ GIT_TAG=$(shell git rev-parse --short HEAD)
 build:
 	CGO_ENABLED=0 go build ${LDFLAGS} -o bin/aws-auth github.com/eytan-avisror/aws-auth
 	chmod +x bin/aws-auth
+
+test:
+	go test -v ./... -coverprofile coverage.txt
+	go tool cover -html=coverage.txt -o coverage.html
