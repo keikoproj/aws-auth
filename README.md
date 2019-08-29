@@ -120,5 +120,9 @@ func someFunc(client kubernetes.Interface) error {
 ## Run in a container
 
 ```shell
-$ docker run -v ~/.kube/:/root/.kube/ -v ~/.aws/:/root/.aws/ aws-auth:latest aws-auth upsert --maproles --rolearn test-1 --username user --groups a-group
+$ docker run \
+-v ~/.kube/:/root/.kube/ \
+-v ~/.aws/:/root/.aws/ \
+aws-auth:latest aws-auth \
+upsert --mapusers --userarn arn:aws:iam::555555555555:user/a-user --username admin --groups system:masters
 ```
