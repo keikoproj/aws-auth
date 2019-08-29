@@ -12,6 +12,8 @@
 
 - useful for automation purposes, any workflow that needs to grant IAM access to an EKS cluster can use this library to modify the config map.
 
+- run as part of a workflow on kubernetes using a docker image
+
 ## Install
 
 ```text
