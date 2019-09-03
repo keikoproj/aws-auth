@@ -1,7 +1,7 @@
 
 # aws-auth
-[![Build Status](https://travis-ci.org/eytan-avisror/aws-auth.svg?branch=master)](https://travis-ci.org/eytan-avisror/aws-auth)
-[![codecov](https://codecov.io/gh/eytan-avisror/aws-auth/branch/master/graph/badge.svg)](https://codecov.io/gh/eytan-avisror/aws-auth)
+[![Build Status](https://travis-ci.org/keikoproj/aws-auth.svg?branch=master)](https://travis-ci.org/keikoproj/aws-auth)
+[![codecov](https://codecov.io/gh/keikoproj/aws-auth/branch/master/graph/badge.svg)](https://codecov.io/gh/keikoproj/aws-auth)
 
 
 > Makes the management of the aws-auth config map for EKS Kubernetes clusters easier
@@ -17,7 +17,7 @@
 ## Install
 
 ```text
-$ go get github.com/eytan-avisror/aws-auth
+$ go get github.com/keikoproj/aws-auth
 $
 ```
 
@@ -96,7 +96,7 @@ added arn:aws:iam::555555555555:role/my-new-node-group-NodeInstanceRole-74RF4UBD
 package main
 
 import (
-    awsauth "github.com/eytan-avisror/aws-auth/pkg/mapper"
+    awsauth "github.com/keikoproj/aws-auth/pkg/mapper"
 )
 
 func someFunc(client kubernetes.Interface) error {
@@ -125,7 +125,7 @@ func someFunc(client kubernetes.Interface) error {
 $ docker run \
 -v ~/.kube/:/root/.kube/ \
 -v ~/.aws/:/root/.aws/ \
-eytanavisror/aws-auth:latest \
+keikoproj/aws-auth:latest \
 aws-auth upsert --mapusers \
 --userarn arn:aws:iam::555555555555:user/a-user \
 --username admin \

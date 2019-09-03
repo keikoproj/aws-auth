@@ -1,4 +1,4 @@
-module github.com/eytan-avisror/aws-auth
+module github.com/keikoproj/aws-auth
 
 go 1.12
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	awsauth "github.com/eytan-avisror/aws-auth/pkg/mapper"
+	awsauth "github.com/keikoproj/aws-auth/pkg/mapper"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )

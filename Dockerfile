@@ -7,7 +7,7 @@ RUN apk add --update \
     build-base \
   && pip install awscli
 
-WORKDIR /go/src/github.com/eytan-avisror/aws-auth
+WORKDIR /go/src/github.com/keikoproj/aws-auth
 COPY . .
 RUN make build
 RUN cp ./bin/aws-auth /bin/aws-auth \
