@@ -125,7 +125,7 @@ func someFunc(client kubernetes.Interface) error {
 $ docker run \
 -v ~/.kube/:/root/.kube/ \
 -v ~/.aws/:/root/.aws/ \
-eytanavisror/aws-auth:latest \
+keikoproj/aws-auth:latest \
 aws-auth upsert --mapusers \
 --userarn arn:aws:iam::555555555555:user/a-user \
 --username admin \
