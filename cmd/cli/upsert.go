@@ -16,7 +16,7 @@ limitations under the License.
 package cli
 
 import (
-	"github.com/eytan-avisror/aws-auth/pkg/mapper"
+	"github.com/keikoproj/aws-auth/pkg/mapper"
 	"github.com/spf13/cobra"
 )
 

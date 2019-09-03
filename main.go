@@ -15,7 +15,7 @@ limitations under the License.
 
 package main
 
-import "github.com/eytan-avisror/aws-auth/cmd/cli"
+import "github.com/keikoproj/aws-auth/cmd/cli"
 
 func main() {
 	cli.Execute()
