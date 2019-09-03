@@ -22,5 +22,5 @@ docker-build:
 	docker build -t $(IMAGE) .
 
 docker-push:
-	docker tag ${IMAGE} eytanavisror/${IMAGE}
-	docker push eytanavisror/${IMAGE}
+	docker tag ${IMAGE} keikoproj/${IMAGE}
+	docker push keikoproj/${IMAGE}
