@@ -22,5 +22,4 @@ docker-build:
 	docker build -t $(IMAGE) .
 
 docker-push:
-	docker tag ${IMAGE} keikoproj/${IMAGE}
-	docker push keikoproj/${IMAGE}
+	docker push ${IMAGE}
