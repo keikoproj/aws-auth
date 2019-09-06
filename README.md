@@ -100,7 +100,7 @@ import (
 )
 
 func someFunc(client kubernetes.Interface) error {
-    awsAuth := awsauth.New(client)
+    awsAuth := awsauth.New(client, false)
     myUpsertRole := &awsauth.UpsertArguments{
         MapRoles: true,
         RoleARN:  "arn:aws:iam::555555555555:role/my-new-node-group-NodeInstanceRole-74RF4UBDUKL6",
@@ -111,7 +111,7 @@ func someFunc(client kubernetes.Interface) error {
         },
     }
 
-    err = awsAuth.Upsert(myUpsertRole, false)
+    err = awsAuth.Upsert(myUpsertRole)
     if err != nil {
         return err
     }
