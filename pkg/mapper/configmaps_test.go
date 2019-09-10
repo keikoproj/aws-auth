@@ -97,3 +97,14 @@ func TestConfigMaps_Read(t *testing.T) {
 	g.Expect(auth.MapUsers[0].Username).To(gomega.Equal("admin"))
 	g.Expect(auth.MapUsers[0].Groups).To(gomega.Equal([]string{"system:masters"}))
 }
+
+func TestConfigMaps_Create(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+
+	auth, _, err := ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(len(auth.MapRoles)).To(gomega.Equal(0))
+	g.Expect(len(auth.MapUsers)).To(gomega.Equal(0))
+}

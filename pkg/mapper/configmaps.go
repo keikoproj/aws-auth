@@ -18,6 +18,7 @@ package mapper
 import (
 	yaml "gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -33,7 +34,14 @@ func ReadAuthMap(k kubernetes.Interface) (AwsAuthData, *v1.ConfigMap, error) {
 
 	cm, err := k.CoreV1().ConfigMaps(AwsAuthNamespace).Get(AwsAuthName, metav1.GetOptions{})
 	if err != nil {
-		return authData, cm, err
+		if errors.IsNotFound(err) {
+			cm, err = CreateAuthMap(k)
+			if err != nil {
+				return authData, cm, err
+			}
+		} else {
+			return authData, cm, err
+		}
 	}
 
 	err = yaml.Unmarshal([]byte(cm.Data["mapRoles"]), &authData.MapRoles)
@@ -47,6 +55,20 @@ func ReadAuthMap(k kubernetes.Interface) (AwsAuthData, *v1.ConfigMap, error) {
 	}
 
 	return authData, cm, nil
+}
+
+func CreateAuthMap(k kubernetes.Interface) (*v1.ConfigMap, error) {
+	configMapObject := &v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "aws-auth",
+			Namespace: "kube-system",
+		},
+	}
+	configMap, err := k.CoreV1().ConfigMaps("kube-system").Create(configMapObject)
+	if err != nil {
+		return configMap, err
+	}
+	return configMap, nil
 }
 
 // UpdateAuthMap updates a given ConfigMap
