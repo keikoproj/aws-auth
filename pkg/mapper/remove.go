@@ -17,6 +17,7 @@ package mapper
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"reflect"
 )
@@ -128,4 +129,54 @@ func removeUser(authMaps []*UsersAuthMap, targetMap *UsersAuthMap) ([]*UsersAuth
 		}
 	}
 	return newMap, removed
+}
+
+// RemoveByUsername removes all map roles and map users that match provided username
+func (b *AuthMapper) RemoveByUsername(args *RemoveArguments) error {
+
+	// Read the config map and return an AuthMap
+	authData, configMap, err := ReadAuthMap(b.KubernetesClient)
+	if err != nil {
+		return err
+	}
+	removed := false
+
+	var newRolesAuthMap []*RolesAuthMap
+
+	for _, mapRole := range authData.MapRoles {
+		// Add all other members except the matched
+		if args.Username != mapRole.Username {
+			newRolesAuthMap = append(newRolesAuthMap, mapRole)
+		} else {
+			removed = true
+		}
+	}
+
+	var newUsersAuthMap []*UsersAuthMap
+
+	for _, mapUser := range authData.MapUsers {
+		// Add all other members except the matched
+		if args.Username != mapUser.Username {
+			newUsersAuthMap = append(newUsersAuthMap, mapUser)
+		} else {
+			removed = true
+		}
+	}
+
+	if !removed {
+		msg := fmt.Sprintf("failed to remove based on username %v, found zero matches\n", args.Username)
+		log.Printf(msg)
+		return errors.New(msg)
+	}
+
+	authData.SetMapRoles(newRolesAuthMap)
+	authData.SetMapUsers(newUsersAuthMap)
+
+	// Update the config map and return an AuthMap
+	err = UpdateAuthMap(b.KubernetesClient, authData, configMap)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

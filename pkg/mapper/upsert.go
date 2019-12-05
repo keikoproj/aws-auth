@@ -63,6 +63,118 @@ func (b *AuthMapper) Upsert(args *UpsertArguments) error {
 	return nil
 }
 
+/**
+ *  UpsertMultiple upserts list of mapRoles and mapUsers into the configmap
+ *  if no changes are required based on new entries, configmap doesn't get updated
+ */
+func (b *AuthMapper) UpsertMultiple(newMapRoles []*RolesAuthMap, newMapUsers []*UsersAuthMap) error {
+	updated := false
+	mapRoles := []*RolesAuthMap{}
+	mapUsers := []*UsersAuthMap{}
+
+	// Read the config map and return an AuthMap
+	authData, configMap, err := ReadAuthMap(b.KubernetesClient)
+	if err != nil {
+		return err
+	}
+
+	// Insert all new mapRole entries
+	for _, newMember := range newMapRoles {
+		found := false
+		for _, existing := range authData.MapRoles {
+
+			if existing.RoleARN == newMember.RoleARN {
+				found = true
+			}
+		}
+
+		if !found {
+			updated = true
+			mapRoles = append(mapRoles, newMember)
+		}
+	}
+
+	// Upsert existing mapRoles
+	for _, existing := range authData.MapRoles {
+
+		for _, newMember := range newMapRoles {
+
+			if existing.RoleARN != newMember.RoleARN {
+				continue
+			}
+
+			if !reflect.DeepEqual(existing.Groups, newMember.Groups) {
+				existing.SetGroups(newMember.Groups)
+				updated = true
+			}
+
+			if existing.Username != newMember.Username {
+				existing.SetUsername(newMember.Username)
+				updated = true
+			}
+
+		}
+
+		mapRoles = append(mapRoles, existing)
+	}
+
+	// Insert all new mapUser entries
+	for _, newMember := range newMapUsers {
+		found := false
+		for _, existing := range authData.MapUsers {
+
+			if existing.UserARN == newMember.UserARN {
+				found = true
+			}
+		}
+
+		if !found {
+			updated = true
+			mapUsers = append(mapUsers, newMember)
+		}
+	}
+
+	// Upsert existing mapUsers
+	for _, existing := range authData.MapUsers {
+
+		for _, newMember := range newMapUsers {
+
+			if existing.UserARN != newMember.UserARN {
+				continue
+			}
+
+			if !reflect.DeepEqual(existing.Groups, newMember.Groups) {
+				existing.SetGroups(newMember.Groups)
+				updated = true
+			}
+
+			if existing.Username != newMember.Username {
+				existing.SetUsername(newMember.Username)
+				updated = true
+			}
+
+		}
+
+		mapUsers = append(mapUsers, existing)
+	}
+
+	if !updated {
+		log.Printf("found zero changes to update, configmap is not changed \n")
+		return nil
+	}
+
+	authData.SetMapRoles(mapRoles)
+	authData.SetMapUsers((mapUsers))
+
+	// Update the config map and return an AuthMap
+	err = UpdateAuthMap(b.KubernetesClient, authData, configMap)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func upsertRole(authMaps []*RolesAuthMap, resource *RolesAuthMap) ([]*RolesAuthMap, bool) {
 	var match bool
 	var updated bool

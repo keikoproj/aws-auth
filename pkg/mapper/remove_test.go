@@ -100,3 +100,50 @@ func TestMapper_RemoveNotFound(t *testing.T) {
 	g.Expect(len(auth.MapRoles)).To(gomega.Equal(1))
 	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
 }
+
+func TestMapper_RemoveByUsername(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+	create_MockConfigMap(client)
+
+	err := mapper.RemoveByUsername(&RemoveArguments{
+		Username: "system:node:{{EC2PrivateDNSName}}",
+	})
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	auth, _, err := ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(len(auth.MapRoles)).To(gomega.Equal(0))
+	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
+
+	err = mapper.RemoveByUsername(&RemoveArguments{
+		Username: "admin",
+	})
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	auth, _, err = ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(len(auth.MapRoles)).To(gomega.Equal(0))
+	g.Expect(len(auth.MapUsers)).To(gomega.Equal(0))
+}
+
+func TestMapper_RemoveByUsernameNotFound(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+	create_MockConfigMap(client)
+
+	err := mapper.RemoveByUsername(&RemoveArguments{
+		Username: "",
+	})
+	g.Expect(err).To(gomega.HaveOccurred())
+
+	auth, _, err := ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(len(auth.MapRoles)).To(gomega.Equal(1))
+	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
+
+}
