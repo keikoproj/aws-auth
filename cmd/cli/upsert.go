@@ -29,10 +29,10 @@ var upsertCmd = &cobra.Command{
 	Long:  `upsert updates or inserts a user or role to the aws-auth configmap`,
 	Run: func(cmd *cobra.Command, args []string) {
 		k, err := getKubernetesClient(upsertArgs.KubeconfigPath)
-		die(err)
+		exitOnError(err)
 		worker := mapper.New(k, true)
 		err = worker.Upsert(upsertArgs)
-		die(err)
+		exitOnError(err)
 	},
 }
 
