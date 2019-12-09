@@ -16,7 +16,6 @@ limitations under the License.
 package mapper
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/onsi/gomega"
@@ -290,7 +289,6 @@ func TestMapper_UpsertMultipleWithCreate(t *testing.T) {
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	auth, _, err := ReadAuthMap(client)
-	fmt.Print((auth))
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	g.Expect(len(auth.MapRoles)).To(gomega.Equal(1))
 	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
