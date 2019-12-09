@@ -56,6 +56,10 @@ data:
       groups:
         - system:bootstrappers
         - system:nodes
+    - rolearn: arn:aws:iam::555555555555:role/abc
+      username: ops-user
+      groups:
+        - system:masters
   mapUsers: |
     - userarn: arn:aws:iam::555555555555:user/a-user
       username: admin
@@ -80,6 +84,15 @@ Remove by full match (only `mapUsers[0]` will be removed)
 $ aws-auth remove --mapusers --userarn arn:aws:iam::555555555555:user/a-user --username admin --groups system:masters
 removed arn:aws:iam::555555555555:user/a-user from aws-auth
 ```
+
+Remove based on a username 
+
+This command removes all map roles and map users that have matching input username. In the above configmap, map role for roleARN *arn:aws:iam::555555555555:role/abc* and mapUser for userARN *arn:aws:iam::555555555555:user/a-user* will be removed.
+
+```
+$ aws-auth remove-by-username --username ops-user
+```
+
 
 Bootstrap a new node group role
 

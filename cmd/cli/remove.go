@@ -29,15 +29,37 @@ var removeCmd = &cobra.Command{
 	Long:  `remove removes a user or role from the aws-auth configmap`,
 	Run: func(cmd *cobra.Command, args []string) {
 		k, err := getKubernetesClient(removeArgs.KubeconfigPath)
-		die(err)
+		exitOnError(err)
 		worker := mapper.New(k, true)
 		err = worker.Remove(removeArgs)
-		die(err)
+		exitOnError(err)
 	},
+}
+
+// removeByUsernameCmd removes all map roles and map users in an auth cm based on the input username
+func removeByUsernameCmd() *cobra.Command {
+	var inputArgs = &mapper.RemoveArguments{}
+	var command = &cobra.Command{
+		Use:   "remove-by-username",
+		Short: "remove-by-username removes all map roles and map users from the aws-auth configmap",
+		Run: func(cmd *cobra.Command, args []string) {
+			k, err := getKubernetesClient(inputArgs.KubeconfigPath)
+			exitOnError(err)
+			worker := mapper.New(k, true)
+			err = worker.RemoveByUsername(inputArgs)
+			exitOnError(err)
+		},
+	}
+
+	command.Flags().StringVar(&inputArgs.KubeconfigPath, "kubeconfig", "", "Kubeconfig path")
+	command.Flags().StringVar(&inputArgs.Username, "username", "", "Username to remove")
+	return command
 }
 
 func init() {
 	rootCmd.AddCommand(removeCmd)
+	rootCmd.AddCommand(removeByUsernameCmd())
+
 	removeCmd.Flags().StringVar(&removeArgs.KubeconfigPath, "kubeconfig", "", "Kubeconfig path")
 	removeCmd.Flags().StringVar(&removeArgs.Username, "username", "", "Username to remove")
 	removeCmd.Flags().StringVar(&removeArgs.RoleARN, "rolearn", "", "Role ARN to remove")

@@ -64,7 +64,7 @@ func getKubernetesClient(kubePath string) (kubernetes.Interface, error) {
 	return client, nil
 }
 
-func die(err error) {
+func exitOnError(err error) {
 	if err != nil {
 		fmt.Printf("error: %v", err)
 		os.Exit(1)
