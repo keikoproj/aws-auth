@@ -18,4 +18,4 @@ RUN cp ./bin/aws-auth /bin/aws-auth \
 ENV HOME /root
 
 ENTRYPOINT ["/bin/aws-auth"]
-CMD ["version"]
+CMD ["help"]
