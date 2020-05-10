@@ -109,10 +109,6 @@ func (args *UpsertArguments) Validate() {
 		log.Fatal("error: --userarn not provided")
 	}
 
-	if len(args.Groups) == 0 {
-		log.Fatal("error: --groups not provided")
-	}
-
 	if args.Username == "" {
 		log.Fatal("error: --username not provided")
 	}
@@ -130,7 +126,7 @@ func (args *UpsertArguments) Validate() {
 type RolesAuthMap struct {
 	RoleARN  string   `yaml:"rolearn"`
 	Username string   `yaml:"username"`
-	Groups   []string `yaml:"groups"`
+	Groups   []string `yaml:"groups,omitempty"`
 }
 
 func (r *RolesAuthMap) String() string {
@@ -148,7 +144,7 @@ func (r *RolesAuthMap) String() string {
 type UsersAuthMap struct {
 	UserARN  string   `yaml:"userarn"`
 	Username string   `yaml:"username"`
-	Groups   []string `yaml:"groups"`
+	Groups   []string `yaml:"groups,omitempty"`
 }
 
 func (r *UsersAuthMap) String() string {
