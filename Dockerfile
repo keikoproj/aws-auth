@@ -17,4 +17,5 @@ RUN cp ./bin/aws-auth /bin/aws-auth \
     && chmod +x /bin/aws-auth
 ENV HOME /root
 
-CMD ["/bin/aws-auth"]
+CMD ["/bin/aws-auth", "version"]
+ENTRYPOINT ["/bin/aws-auth"]
