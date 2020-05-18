@@ -17,6 +17,7 @@ package mapper
 
 import (
 	"testing"
+	"time"
 
 	"github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes/fake"
@@ -331,4 +332,41 @@ func TestMapper_UpsertEmptyGroups(t *testing.T) {
 	g.Expect(auth.MapUsers[0].UserARN).To(gomega.Equal("arn:aws:iam::00000000000:user/user-1"))
 	g.Expect(auth.MapUsers[0].Username).To(gomega.Equal("this:is:a:test"))
 	g.Expect(auth.MapUsers[0].Groups).To(gomega.BeNil())
+}
+
+func TestMapper_UpsertWithRetries(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+	create_MockConfigMap(client)
+
+	err := mapper.Upsert(&UpsertArguments{
+		MapRoles:      true,
+		RoleARN:       "arn:aws:iam::00000000000:role/node-2",
+		Username:      "system:node:{{EC2PrivateDNSName}}",
+		Groups:        []string{"system:bootstrappers", "system:nodes"},
+		WithRetries:   true,
+		MinRetryTime:  time.Millisecond * 1,
+		MaxRetryTime:  time.Millisecond * 2,
+		MaxRetryCount: 3,
+	})
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	err = mapper.Upsert(&UpsertArguments{
+		MapUsers:      true,
+		UserARN:       "arn:aws:iam::00000000000:user/user-2",
+		Username:      "admin",
+		Groups:        []string{"system:masters"},
+		WithRetries:   true,
+		MinRetryTime:  time.Millisecond * 1,
+		MaxRetryTime:  time.Millisecond * 2,
+		MaxRetryCount: 3,
+	})
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	auth, _, err := ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(len(auth.MapRoles)).To(gomega.Equal(2))
+	g.Expect(len(auth.MapUsers)).To(gomega.Equal(2))
 }

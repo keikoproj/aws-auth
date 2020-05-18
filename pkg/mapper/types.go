@@ -20,6 +20,7 @@ import (
 	"io/ioutil"
 	"log"
 	"strings"
+	"time"
 
 	"k8s.io/client-go/kubernetes"
 )
@@ -43,6 +44,11 @@ func New(client kubernetes.Interface, isCommandline bool) *AuthMapper {
 	}
 	return mapper
 }
+
+var (
+	DefaultRetryerBackoffFactor float64 = 2.0
+	DefaultRetryerBackoffJitter         = true
+)
 
 // AwsAuthData represents the data of the aws-auth configmap
 type AwsAuthData struct {
@@ -69,6 +75,11 @@ type RemoveArguments struct {
 	RoleARN        string
 	UserARN        string
 	Groups         []string
+	WithRetries    bool
+	MinRetryTime   time.Duration
+	MaxRetryTime   time.Duration
+	MaxRetryCount  int
+	AllOption      bool
 }
 
 func (args *RemoveArguments) Validate() {
@@ -85,7 +96,9 @@ func (args *RemoveArguments) Validate() {
 	}
 
 	if !args.MapUsers && !args.MapRoles {
-		log.Fatal("error: must select --mapusers or --maproles")
+		if !args.AllOption {
+			log.Fatal("error: must select --mapusers or --maproles")
+		}
 	}
 }
 
@@ -98,9 +111,19 @@ type UpsertArguments struct {
 	RoleARN        string
 	UserARN        string
 	Groups         []string
+	WithRetries    bool
+	MinRetryTime   time.Duration
+	MaxRetryTime   time.Duration
+	MaxRetryCount  int
 }
 
 func (args *UpsertArguments) Validate() {
+	if args.WithRetries {
+		if args.MaxRetryCount < 1 {
+			log.Fatal("error: --retry-max-count is invalid, must be greater than zero")
+		}
+	}
+
 	if args.RoleARN == "" && args.MapRoles {
 		log.Fatal("error: --rolearn not provided")
 	}

@@ -17,6 +17,7 @@ package mapper
 
 import (
 	"testing"
+	"time"
 
 	"github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes/fake"
@@ -129,6 +130,42 @@ func TestMapper_RemoveByUsername(t *testing.T) {
 	g.Expect(len(auth.MapUsers)).To(gomega.Equal(0))
 }
 
+func TestMapper_RemoveByUsernameWithRetries(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+	create_MockConfigMap(client)
+
+	err := mapper.RemoveByUsername(&RemoveArguments{
+		Username:      "system:node:{{EC2PrivateDNSName}}",
+		WithRetries:   true,
+		MinRetryTime:  time.Millisecond * 1,
+		MaxRetryTime:  time.Millisecond * 2,
+		MaxRetryCount: 3,
+	})
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	auth, _, err := ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(len(auth.MapRoles)).To(gomega.Equal(0))
+	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
+
+	err = mapper.RemoveByUsername(&RemoveArguments{
+		Username:      "admin",
+		WithRetries:   true,
+		MinRetryTime:  time.Millisecond * 1,
+		MaxRetryTime:  time.Millisecond * 2,
+		MaxRetryCount: 3,
+	})
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	auth, _, err = ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(len(auth.MapRoles)).To(gomega.Equal(0))
+	g.Expect(len(auth.MapUsers)).To(gomega.Equal(0))
+}
+
 func TestMapper_RemoveByUsernameNotFound(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
@@ -145,5 +182,41 @@ func TestMapper_RemoveByUsernameNotFound(t *testing.T) {
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	g.Expect(len(auth.MapRoles)).To(gomega.Equal(1))
 	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
+}
 
+func TestMapper_RemoveWithRetries(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+	create_MockConfigMap(client)
+
+	err := mapper.Remove(&RemoveArguments{
+		MapRoles:      true,
+		RoleARN:       "arn:aws:iam::00000000000:role/node-1",
+		Username:      "system:node:{{EC2PrivateDNSName}}",
+		Groups:        []string{"system:bootstrappers", "system:nodes"},
+		WithRetries:   true,
+		MinRetryTime:  time.Millisecond * 1,
+		MaxRetryTime:  time.Millisecond * 2,
+		MaxRetryCount: 3,
+	})
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	err = mapper.Remove(&RemoveArguments{
+		MapUsers:      true,
+		UserARN:       "arn:aws:iam::00000000000:user/user-1",
+		Username:      "admin",
+		Groups:        []string{"system:masters"},
+		WithRetries:   true,
+		MinRetryTime:  time.Millisecond * 1,
+		MaxRetryTime:  time.Millisecond * 2,
+		MaxRetryCount: 3,
+	})
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	auth, _, err := ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(len(auth.MapRoles)).To(gomega.Equal(0))
+	g.Expect(len(auth.MapUsers)).To(gomega.Equal(0))
 }
