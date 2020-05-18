@@ -83,6 +83,12 @@ type RemoveArguments struct {
 }
 
 func (args *RemoveArguments) Validate() {
+	if args.WithRetries {
+		if args.MaxRetryCount < 1 {
+			log.Fatal("error: --retry-max-count is invalid, must be greater than zero")
+		}
+	}
+
 	if args.RoleARN == "" && args.MapRoles {
 		log.Fatal("error: --rolearn not provided")
 	}
