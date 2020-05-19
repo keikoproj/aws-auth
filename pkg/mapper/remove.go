@@ -135,7 +135,7 @@ func removeUser(authMaps []*UsersAuthMap, targetMap *UsersAuthMap) ([]*UsersAuth
 
 // RemoveByUsername removes all map roles and map users that match provided username
 func (b *AuthMapper) RemoveByUsername(args *RemoveArguments) error {
-
+	args.Validate()
 	// Read the config map and return an AuthMap
 	authData, configMap, err := ReadAuthMap(b.KubernetesClient)
 	if err != nil {
