@@ -18,6 +18,7 @@ package mapper
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
@@ -79,6 +80,46 @@ func TestConfigMaps_Update(t *testing.T) {
 	g.Expect(len(auth.MapRoles)).To(gomega.Equal(2))
 	g.Expect(len(auth.MapUsers)).To(gomega.Equal(2))
 }
+
+func TestConfigMaps_UpdateRetries(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	create_MockConfigMap(client)
+
+	auth, cm, err := ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	role := NewRolesAuthMap("arn:aws:iam::00000000000:role/node-2",
+		"system:node:{{EC2PrivateDNSName}}",
+		[]string{"system:bootstrappers", "system:nodes"})
+	user := NewUsersAuthMap("arn:aws:iam::00000000000:user/user-2",
+		"ops-user",
+		[]string{"system:masters"})
+
+	auth.MapRoles = append(auth.MapRoles, role)
+	auth.MapUsers = append(auth.MapUsers, user)
+	retryer := &RetryConfig{
+		MinRetryTime:  time.Millisecond * 1,
+		MaxRetryTime:  time.Millisecond * 2,
+		MaxRetryCount: 3,
+	}
+
+	err = UpdateAuthMapWithRetries(client, auth, cm, retryer)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	auth, cm, err = ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	fmt.Println(auth.MapRoles[0])
+	g.Expect(len(auth.MapRoles)).To(gomega.Equal(2))
+	g.Expect(len(auth.MapUsers)).To(gomega.Equal(2))
+
+	client.CoreV1().ConfigMaps("kube-system").Delete("aws-auth", &metav1.DeleteOptions{})
+	err = UpdateAuthMapWithRetries(client, auth, cm, retryer)
+	g.Expect(err).To(gomega.HaveOccurred())
+}
+
 func TestConfigMaps_Read(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)

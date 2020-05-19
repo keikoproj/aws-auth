@@ -33,6 +33,7 @@ Usage:
 Available Commands:
   help        Help about any command
   remove      remove removes an auth-map from mapRoles or mapUsers
+  remove-by-username remove-by-username removes all map roles and map users from the aws-auth configmap
   upsert      upsert updates or inserts an auth-map to mapRoles
   version     Version of aws-auth
 
@@ -85,11 +86,11 @@ $ aws-auth remove --mapusers --userarn arn:aws:iam::555555555555:user/a-user --u
 removed arn:aws:iam::555555555555:user/a-user from aws-auth
 ```
 
-Remove based on a username 
+Remove based on a username
 
 This command removes all map roles and map users that have matching input username. In the above configmap, map role for roleARN *arn:aws:iam::555555555555:role/abc* and mapUser for userARN *arn:aws:iam::555555555555:user/a-user* will be removed.
 
-```
+```text
 $ aws-auth remove-by-username --username ops-user
 ```
 
@@ -99,6 +100,21 @@ Bootstrap a new node group role
 ```text
 $ aws-auth uspert --maproles --userarn arn:aws:iam::555555555555:role/my-new-node-group-NodeInstanceRole-74RF4UBDUKL6 --username system:node:{{EC2PrivateDNSName}} --groups system:bootstrappers system:nodes
 added arn:aws:iam::555555555555:role/my-new-node-group-NodeInstanceRole-74RF4UBDUKL6 to aws-auth
+```
+
+You can also add retries with exponential backoff
+
+```text
+$ aws-auth uspert --maproles --userarn arn:aws:iam::555555555555:role/my-new-node-group-NodeInstanceRole-74RF4UBDUKL6 --username system:node:{{EC2PrivateDNSName}} --groups system:bootstrappers system:nodes --retry
+```
+
+Retries are configurable using the following flags
+
+```text
+      --retry                     Retry on failure with exponential backoff
+      --retry-max-count int       Maximum number of retries before giving up (default 12)
+      --retry-max-time duration   Maximum wait interval (default 30s)
+      --retry-min-time duration   Minimum wait interval (default 200ms)
 ```
 
 ## Usage as a library
@@ -122,6 +138,10 @@ func someFunc(client kubernetes.Interface) error {
             "system:bootstrappers",
             "system:nodes",
         },
+        WithRetries: true,
+        MinRetryTime:  time.Millisecond * 100,
+        MaxRetryTime:  time.Second * 30,
+        MaxRetryCount: 12,
     }
 
     err = awsAuth.Upsert(myUpsertRole)

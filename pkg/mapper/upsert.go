@@ -23,7 +23,6 @@ import (
 // Upsert update or inserts by rolearn
 func (b *AuthMapper) Upsert(args *UpsertArguments) error {
 	args.Validate()
-
 	// Read the config map and return an AuthMap
 	authData, configMap, err := ReadAuthMap(b.KubernetesClient)
 	if err != nil {
@@ -55,12 +54,15 @@ func (b *AuthMapper) Upsert(args *UpsertArguments) error {
 	}
 
 	// Update the config map and return an AuthMap
-	err = UpdateAuthMap(b.KubernetesClient, authData, configMap)
-	if err != nil {
-		return err
+	if args.WithRetries {
+		retryer := &RetryConfig{
+			MinRetryTime:  args.MinRetryTime,
+			MaxRetryTime:  args.MaxRetryTime,
+			MaxRetryCount: args.MaxRetryCount,
+		}
+		return UpdateAuthMapWithRetries(b.KubernetesClient, authData, configMap, retryer)
 	}
-
-	return nil
+	return UpdateAuthMap(b.KubernetesClient, authData, configMap)
 }
 
 /**

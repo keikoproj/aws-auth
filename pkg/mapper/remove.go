@@ -25,7 +25,6 @@ import (
 // Remove removes by match of provided arguments
 func (b *AuthMapper) Remove(args *RemoveArguments) error {
 	args.Validate()
-
 	// Read the config map and return an AuthMap
 	authData, configMap, err := ReadAuthMap(b.KubernetesClient)
 	if err != nil {
@@ -57,12 +56,15 @@ func (b *AuthMapper) Remove(args *RemoveArguments) error {
 	}
 
 	// Update the config map and return an AuthMap
-	err = UpdateAuthMap(b.KubernetesClient, authData, configMap)
-	if err != nil {
-		return err
+	if args.WithRetries {
+		retryer := &RetryConfig{
+			MinRetryTime:  args.MinRetryTime,
+			MaxRetryTime:  args.MaxRetryTime,
+			MaxRetryCount: args.MaxRetryCount,
+		}
+		return UpdateAuthMapWithRetries(b.KubernetesClient, authData, configMap, retryer)
 	}
-
-	return nil
+	return UpdateAuthMap(b.KubernetesClient, authData, configMap)
 }
 
 func removeRole(authMaps []*RolesAuthMap, targetMap *RolesAuthMap) ([]*RolesAuthMap, bool) {
@@ -133,7 +135,8 @@ func removeUser(authMaps []*UsersAuthMap, targetMap *UsersAuthMap) ([]*UsersAuth
 
 // RemoveByUsername removes all map roles and map users that match provided username
 func (b *AuthMapper) RemoveByUsername(args *RemoveArguments) error {
-
+	args.IsGlobal = true
+	args.Validate()
 	// Read the config map and return an AuthMap
 	authData, configMap, err := ReadAuthMap(b.KubernetesClient)
 	if err != nil {
@@ -173,10 +176,15 @@ func (b *AuthMapper) RemoveByUsername(args *RemoveArguments) error {
 	authData.SetMapUsers(newUsersAuthMap)
 
 	// Update the config map and return an AuthMap
-	err = UpdateAuthMap(b.KubernetesClient, authData, configMap)
-	if err != nil {
-		return err
+	if args.WithRetries {
+		retryer := &RetryConfig{
+			MinRetryTime:  args.MinRetryTime,
+			MaxRetryTime:  args.MaxRetryTime,
+			MaxRetryCount: args.MaxRetryCount,
+		}
+		return UpdateAuthMapWithRetries(b.KubernetesClient, authData, configMap, retryer)
 	}
+	return UpdateAuthMap(b.KubernetesClient, authData, configMap)
 
 	return nil
 }
