@@ -79,7 +79,7 @@ type RemoveArguments struct {
 	MinRetryTime   time.Duration
 	MaxRetryTime   time.Duration
 	MaxRetryCount  int
-	AllOption      bool
+	IsGlobal       bool
 }
 
 func (args *RemoveArguments) Validate() {
@@ -102,7 +102,7 @@ func (args *RemoveArguments) Validate() {
 	}
 
 	if !args.MapUsers && !args.MapRoles {
-		if !args.AllOption {
+		if !args.IsGlobal {
 			log.Fatal("error: must select --mapusers or --maproles")
 		}
 	}

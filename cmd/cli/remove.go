@@ -50,9 +50,6 @@ func removeByUsernameCmd() *cobra.Command {
 		Use:   "remove-by-username",
 		Short: "remove-by-username removes all map roles and map users from the aws-auth configmap",
 		Run: func(cmd *cobra.Command, args []string) {
-			removeArgs.AllOption = true
-			removeArgs.Validate()
-
 			k, err := getKubernetesClient(removeArgs.KubeconfigPath)
 			if err != nil {
 				log.Fatal(err)
