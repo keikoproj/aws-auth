@@ -24,6 +24,7 @@ import (
 
 // Remove removes by match of provided arguments
 func (b *AuthMapper) Remove(args *RemoveArguments) error {
+	args.Validate()
 	// Read the config map and return an AuthMap
 	authData, configMap, err := ReadAuthMap(b.KubernetesClient)
 	if err != nil {

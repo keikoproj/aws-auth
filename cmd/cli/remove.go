@@ -31,16 +31,12 @@ var removeCmd = &cobra.Command{
 	Short: "remove removes a user or role from the aws-auth configmap",
 	Long:  `remove removes a user or role from the aws-auth configmap`,
 	Run: func(cmd *cobra.Command, args []string) {
-
-		removeArgs.Validate()
-
 		k, err := getKubernetesClient(removeArgs.KubeconfigPath)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		worker := mapper.New(k, true)
-
 		if err := worker.RemoveByUsername(removeArgs); err != nil {
 			log.Fatal(err)
 		}

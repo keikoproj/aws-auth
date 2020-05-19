@@ -22,6 +22,7 @@ import (
 
 // Upsert update or inserts by rolearn
 func (b *AuthMapper) Upsert(args *UpsertArguments) error {
+	args.Validate()
 	// Read the config map and return an AuthMap
 	authData, configMap, err := ReadAuthMap(b.KubernetesClient)
 	if err != nil {
