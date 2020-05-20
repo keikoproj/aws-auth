@@ -44,6 +44,18 @@ func Execute() {
 func getKubernetesClient(kubePath string) (kubernetes.Interface, error) {
 	var config *rest.Config
 
+        if _, inCluster := os.LookupEnv("KUBERNETES_SERVICE_HOST"); inCluster == true {
+		config, err := rest.InClusterConfig()
+		if err != nil {
+			return nil, err
+		}
+		client, err := kubernetes.NewForConfig(config)
+		if err != nil {
+			return nil, err
+		}
+		return client, nil
+	}
+
 	if kubePath == "" {
 		userHome, _ := os.UserHomeDir()
 		kubePath = fmt.Sprintf("%v/.kube/config", userHome)
