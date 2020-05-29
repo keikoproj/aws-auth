@@ -103,6 +103,10 @@ func (args *MapperArguments) Validate() {
 		log.Fatal("error: --mapusers and --maproles are mutually exclusive")
 	}
 
+	if args.Username == "" {
+		log.Fatal("error: --username not provided")
+	}
+
 	if !args.MapUsers && !args.MapRoles {
 		if !args.IsGlobal {
 			log.Fatal("error: must select --mapusers or --maproles")
