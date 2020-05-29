@@ -23,7 +23,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var removeArgs = &mapper.MapperArguments{}
+var removeArgs = &mapper.MapperArguments{
+	OperationType: mapper.OperationRemove,
+}
 
 // deleteCmd represents the base command when called without any subcommands
 var removeCmd = &cobra.Command{

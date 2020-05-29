@@ -68,9 +68,17 @@ func (m *AwsAuthData) SetMapUsers(authMap []*UsersAuthMap) {
 	m.MapUsers = authMap
 }
 
+type OperationType string
+
+const (
+	OperationUpsert OperationType = "upsert"
+	OperationRemove OperationType = "remove"
+)
+
 // MapperArguments are the arguments for removing a mapRole or mapUsers
 type MapperArguments struct {
 	KubeconfigPath string
+	OperationType  OperationType
 	MapRoles       bool
 	MapUsers       bool
 	Username       string
@@ -103,7 +111,7 @@ func (args *MapperArguments) Validate() {
 		log.Fatal("error: --mapusers and --maproles are mutually exclusive")
 	}
 
-	if args.Username == "" {
+	if args.OperationType == OperationUpsert && args.Username == "" {
 		log.Fatal("error: --username not provided")
 	}
 
