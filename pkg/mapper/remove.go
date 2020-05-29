@@ -23,8 +23,68 @@ import (
 )
 
 // Remove removes by match of provided arguments
-func (b *AuthMapper) Remove(args *RemoveArguments) error {
+func (b *AuthMapper) Remove(args *MapperArguments) error {
 	args.Validate()
+
+	if args.WithRetries {
+		return WithRetry(b.removeAuth, args)
+	}
+	return b.removeAuth(args)
+}
+
+// RemoveByUsername removes all map roles and map users that match provided username
+func (b *AuthMapper) RemoveByUsername(args *MapperArguments) error {
+	args.IsGlobal = true
+	args.Validate()
+	if args.WithRetries {
+		return WithRetry(b.removeAuthByUser, args)
+	}
+	return b.removeAuthByUser(args)
+}
+
+func (b *AuthMapper) removeAuthByUser(args *MapperArguments) error {
+	// Read the config map and return an AuthMap
+	authData, configMap, err := ReadAuthMap(b.KubernetesClient)
+	if err != nil {
+		return err
+	}
+	removed := false
+
+	var newRolesAuthMap []*RolesAuthMap
+
+	for _, mapRole := range authData.MapRoles {
+		// Add all other members except the matched
+		if args.Username != mapRole.Username {
+			newRolesAuthMap = append(newRolesAuthMap, mapRole)
+		} else {
+			removed = true
+		}
+	}
+
+	var newUsersAuthMap []*UsersAuthMap
+
+	for _, mapUser := range authData.MapUsers {
+		// Add all other members except the matched
+		if args.Username != mapUser.Username {
+			newUsersAuthMap = append(newUsersAuthMap, mapUser)
+		} else {
+			removed = true
+		}
+	}
+
+	if !removed {
+		msg := fmt.Sprintf("failed to remove based on username %v, found zero matches\n", args.Username)
+		log.Printf(msg)
+		return errors.New(msg)
+	}
+
+	authData.SetMapRoles(newRolesAuthMap)
+	authData.SetMapUsers(newUsersAuthMap)
+
+	return UpdateAuthMap(b.KubernetesClient, authData, configMap)
+}
+
+func (b *AuthMapper) removeAuth(args *MapperArguments) error {
 	// Read the config map and return an AuthMap
 	authData, configMap, err := ReadAuthMap(b.KubernetesClient)
 	if err != nil {
@@ -55,15 +115,6 @@ func (b *AuthMapper) Remove(args *RemoveArguments) error {
 		authData.SetMapUsers(newMap)
 	}
 
-	// Update the config map and return an AuthMap
-	if args.WithRetries {
-		retryer := &RetryConfig{
-			MinRetryTime:  args.MinRetryTime,
-			MaxRetryTime:  args.MaxRetryTime,
-			MaxRetryCount: args.MaxRetryCount,
-		}
-		return UpdateAuthMapWithRetries(b.KubernetesClient, authData, configMap, retryer)
-	}
 	return UpdateAuthMap(b.KubernetesClient, authData, configMap)
 }
 
@@ -131,60 +182,4 @@ func removeUser(authMaps []*UsersAuthMap, targetMap *UsersAuthMap) ([]*UsersAuth
 		}
 	}
 	return newMap, removed
-}
-
-// RemoveByUsername removes all map roles and map users that match provided username
-func (b *AuthMapper) RemoveByUsername(args *RemoveArguments) error {
-	args.IsGlobal = true
-	args.Validate()
-	// Read the config map and return an AuthMap
-	authData, configMap, err := ReadAuthMap(b.KubernetesClient)
-	if err != nil {
-		return err
-	}
-	removed := false
-
-	var newRolesAuthMap []*RolesAuthMap
-
-	for _, mapRole := range authData.MapRoles {
-		// Add all other members except the matched
-		if args.Username != mapRole.Username {
-			newRolesAuthMap = append(newRolesAuthMap, mapRole)
-		} else {
-			removed = true
-		}
-	}
-
-	var newUsersAuthMap []*UsersAuthMap
-
-	for _, mapUser := range authData.MapUsers {
-		// Add all other members except the matched
-		if args.Username != mapUser.Username {
-			newUsersAuthMap = append(newUsersAuthMap, mapUser)
-		} else {
-			removed = true
-		}
-	}
-
-	if !removed {
-		msg := fmt.Sprintf("failed to remove based on username %v, found zero matches\n", args.Username)
-		log.Printf(msg)
-		return errors.New(msg)
-	}
-
-	authData.SetMapRoles(newRolesAuthMap)
-	authData.SetMapUsers(newUsersAuthMap)
-
-	// Update the config map and return an AuthMap
-	if args.WithRetries {
-		retryer := &RetryConfig{
-			MinRetryTime:  args.MinRetryTime,
-			MaxRetryTime:  args.MaxRetryTime,
-			MaxRetryCount: args.MaxRetryCount,
-		}
-		return UpdateAuthMapWithRetries(b.KubernetesClient, authData, configMap, retryer)
-	}
-	return UpdateAuthMap(b.KubernetesClient, authData, configMap)
-
-	return nil
 }

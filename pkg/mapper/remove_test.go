@@ -30,7 +30,7 @@ func TestMapper_Remove(t *testing.T) {
 	mapper := New(client, true)
 	create_MockConfigMap(client)
 
-	err := mapper.Remove(&RemoveArguments{
+	err := mapper.Remove(&MapperArguments{
 		MapRoles: true,
 		RoleARN:  "arn:aws:iam::00000000000:role/node-1",
 		Username: "system:node:{{EC2PrivateDNSName}}",
@@ -38,7 +38,7 @@ func TestMapper_Remove(t *testing.T) {
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	err = mapper.Remove(&RemoveArguments{
+	err = mapper.Remove(&MapperArguments{
 		MapUsers: true,
 		UserARN:  "arn:aws:iam::00000000000:user/user-1",
 		Username: "admin",
@@ -59,13 +59,13 @@ func TestMapper_RemoveByARN(t *testing.T) {
 	mapper := New(client, true)
 	create_MockConfigMap(client)
 
-	err := mapper.Remove(&RemoveArguments{
+	err := mapper.Remove(&MapperArguments{
 		MapRoles: true,
 		RoleARN:  "arn:aws:iam::00000000000:role/node-1",
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	err = mapper.Remove(&RemoveArguments{
+	err = mapper.Remove(&MapperArguments{
 		MapUsers: true,
 		UserARN:  "arn:aws:iam::00000000000:user/user-1",
 	})
@@ -84,13 +84,13 @@ func TestMapper_RemoveNotFound(t *testing.T) {
 	mapper := New(client, true)
 	create_MockConfigMap(client)
 
-	err := mapper.Remove(&RemoveArguments{
+	err := mapper.Remove(&MapperArguments{
 		MapRoles: true,
 		RoleARN:  "arn:aws:iam::00000000000:role/node-2",
 	})
 	g.Expect(err).To(gomega.HaveOccurred())
 
-	err = mapper.Remove(&RemoveArguments{
+	err = mapper.Remove(&MapperArguments{
 		MapUsers: true,
 		UserARN:  "arn:aws:iam::00000000000:user/user-2",
 	})
@@ -109,7 +109,7 @@ func TestMapper_RemoveByUsername(t *testing.T) {
 	mapper := New(client, true)
 	create_MockConfigMap(client)
 
-	err := mapper.RemoveByUsername(&RemoveArguments{
+	err := mapper.RemoveByUsername(&MapperArguments{
 		Username: "system:node:{{EC2PrivateDNSName}}",
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
@@ -119,7 +119,7 @@ func TestMapper_RemoveByUsername(t *testing.T) {
 	g.Expect(len(auth.MapRoles)).To(gomega.Equal(0))
 	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
 
-	err = mapper.RemoveByUsername(&RemoveArguments{
+	err = mapper.RemoveByUsername(&MapperArguments{
 		Username: "admin",
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
@@ -137,7 +137,7 @@ func TestMapper_RemoveByUsernameWithRetries(t *testing.T) {
 	mapper := New(client, true)
 	create_MockConfigMap(client)
 
-	err := mapper.RemoveByUsername(&RemoveArguments{
+	err := mapper.RemoveByUsername(&MapperArguments{
 		Username:      "system:node:{{EC2PrivateDNSName}}",
 		WithRetries:   true,
 		MinRetryTime:  time.Millisecond * 1,
@@ -151,7 +151,7 @@ func TestMapper_RemoveByUsernameWithRetries(t *testing.T) {
 	g.Expect(len(auth.MapRoles)).To(gomega.Equal(0))
 	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
 
-	err = mapper.RemoveByUsername(&RemoveArguments{
+	err = mapper.RemoveByUsername(&MapperArguments{
 		Username:      "admin",
 		WithRetries:   true,
 		MinRetryTime:  time.Millisecond * 1,
@@ -173,7 +173,7 @@ func TestMapper_RemoveByUsernameNotFound(t *testing.T) {
 	mapper := New(client, true)
 	create_MockConfigMap(client)
 
-	err := mapper.RemoveByUsername(&RemoveArguments{
+	err := mapper.RemoveByUsername(&MapperArguments{
 		Username: "",
 	})
 	g.Expect(err).To(gomega.HaveOccurred())
@@ -191,7 +191,7 @@ func TestMapper_RemoveWithRetries(t *testing.T) {
 	mapper := New(client, true)
 	create_MockConfigMap(client)
 
-	err := mapper.Remove(&RemoveArguments{
+	err := mapper.Remove(&MapperArguments{
 		MapRoles:      true,
 		RoleARN:       "arn:aws:iam::00000000000:role/node-1",
 		Username:      "system:node:{{EC2PrivateDNSName}}",
@@ -203,7 +203,7 @@ func TestMapper_RemoveWithRetries(t *testing.T) {
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	err = mapper.Remove(&RemoveArguments{
+	err = mapper.Remove(&MapperArguments{
 		MapUsers:      true,
 		UserARN:       "arn:aws:iam::00000000000:user/user-1",
 		Username:      "admin",

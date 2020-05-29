@@ -21,48 +21,14 @@ import (
 )
 
 // Upsert update or inserts by rolearn
-func (b *AuthMapper) Upsert(args *UpsertArguments) error {
+func (b *AuthMapper) Upsert(args *MapperArguments) error {
 	args.Validate()
-	// Read the config map and return an AuthMap
-	authData, configMap, err := ReadAuthMap(b.KubernetesClient)
-	if err != nil {
-		return err
-	}
 
-	if args.MapRoles {
-		var roleResource = NewRolesAuthMap(args.RoleARN, args.Username, args.Groups)
-
-		newMap, ok := upsertRole(authData.MapRoles, roleResource)
-		if ok {
-			log.Printf("role %v has been updated\n", roleResource.RoleARN)
-		} else {
-			log.Printf("no updates needed to %v\n", roleResource.RoleARN)
-		}
-		authData.SetMapRoles(newMap)
-	}
-
-	if args.MapUsers {
-		var userResource = NewUsersAuthMap(args.UserARN, args.Username, args.Groups)
-
-		newMap, ok := upsertUser(authData.MapUsers, userResource)
-		if ok {
-			log.Printf("role %v has been updated\n", userResource.UserARN)
-		} else {
-			log.Printf("no updates needed to %v\n", userResource.UserARN)
-		}
-		authData.SetMapUsers(newMap)
-	}
-
-	// Update the config map and return an AuthMap
 	if args.WithRetries {
-		retryer := &RetryConfig{
-			MinRetryTime:  args.MinRetryTime,
-			MaxRetryTime:  args.MaxRetryTime,
-			MaxRetryCount: args.MaxRetryCount,
-		}
-		return UpdateAuthMapWithRetries(b.KubernetesClient, authData, configMap, retryer)
+		return WithRetry(b.upsertAuth, args)
 	}
-	return UpdateAuthMap(b.KubernetesClient, authData, configMap)
+
+	return b.upsertAuth(args)
 }
 
 /**
@@ -175,6 +141,40 @@ func (b *AuthMapper) UpsertMultiple(newMapRoles []*RolesAuthMap, newMapUsers []*
 	}
 
 	return nil
+}
+
+func (b *AuthMapper) upsertAuth(args *MapperArguments) error {
+	// Read the config map and return an AuthMap
+	authData, configMap, err := ReadAuthMap(b.KubernetesClient)
+	if err != nil {
+		return err
+	}
+
+	if args.MapRoles {
+		var roleResource = NewRolesAuthMap(args.RoleARN, args.Username, args.Groups)
+
+		newMap, ok := upsertRole(authData.MapRoles, roleResource)
+		if ok {
+			log.Printf("role %v has been updated\n", roleResource.RoleARN)
+		} else {
+			log.Printf("no updates needed to %v\n", roleResource.RoleARN)
+		}
+		authData.SetMapRoles(newMap)
+	}
+
+	if args.MapUsers {
+		var userResource = NewUsersAuthMap(args.UserARN, args.Username, args.Groups)
+
+		newMap, ok := upsertUser(authData.MapUsers, userResource)
+		if ok {
+			log.Printf("role %v has been updated\n", userResource.UserARN)
+		} else {
+			log.Printf("no updates needed to %v\n", userResource.UserARN)
+		}
+		authData.SetMapUsers(newMap)
+	}
+
+	return UpdateAuthMap(b.KubernetesClient, authData, configMap)
 }
 
 func upsertRole(authMaps []*RolesAuthMap, resource *RolesAuthMap) ([]*RolesAuthMap, bool) {
