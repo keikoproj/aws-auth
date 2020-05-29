@@ -130,7 +130,7 @@ import (
 
 func someFunc(client kubernetes.Interface) error {
     awsAuth := awsauth.New(client, false)
-    myUpsertRole := &awsauth.UpsertArguments{
+    myUpsertRole := &awsauth.MapperArguments{
         MapRoles: true,
         RoleARN:  "arn:aws:iam::555555555555:role/my-new-node-group-NodeInstanceRole-74RF4UBDUKL6",
         Username: "system:node:{{EC2PrivateDNSName}}",
