@@ -16,11 +16,6 @@ limitations under the License.
 package mapper
 
 import (
-	"log"
-	"time"
-
-	"github.com/jpillora/backoff"
-	errs "github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -100,41 +95,4 @@ func UpdateAuthMap(k kubernetes.Interface, authData AwsAuthData, cm *v1.ConfigMa
 	}
 
 	return nil
-}
-
-type RetryConfig struct {
-	MinRetryTime  time.Duration
-	MaxRetryTime  time.Duration
-	MaxRetryCount int
-}
-
-// UpdateAuthMapWithRetries is a wrapper for configmap update with exponential backoff retries
-func UpdateAuthMapWithRetries(k kubernetes.Interface, authData AwsAuthData, cm *v1.ConfigMap, config *RetryConfig) error {
-	var (
-		counter int = 0
-		bkoff       = &backoff.Backoff{
-			Min:    config.MinRetryTime,
-			Max:    config.MaxRetryTime,
-			Factor: DefaultRetryerBackoffFactor,
-			Jitter: DefaultRetryerBackoffJitter,
-		}
-	)
-
-	for {
-		if counter >= config.MaxRetryCount {
-			break
-		}
-
-		if err := UpdateAuthMap(k, authData, cm); err != nil {
-			d := bkoff.Duration()
-			log.Printf("error: %v: will retry after %v", err, d)
-			time.Sleep(d)
-			counter++
-			continue
-		}
-
-		return nil
-	}
-
-	return errs.New("waiter timed out")
 }

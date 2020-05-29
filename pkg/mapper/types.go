@@ -22,6 +22,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jpillora/backoff"
+	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -66,8 +68,8 @@ func (m *AwsAuthData) SetMapUsers(authMap []*UsersAuthMap) {
 	m.MapUsers = authMap
 }
 
-// RemoveArguments are the arguments for removing a mapRole or mapUsers
-type RemoveArguments struct {
+// MapperArguments are the arguments for removing a mapRole or mapUsers
+type MapperArguments struct {
 	KubeconfigPath string
 	MapRoles       bool
 	MapUsers       bool
@@ -82,7 +84,7 @@ type RemoveArguments struct {
 	IsGlobal       bool
 }
 
-func (args *RemoveArguments) Validate() {
+func (args *MapperArguments) Validate() {
 	if args.WithRetries {
 		if args.MaxRetryCount < 1 {
 			log.Fatal("error: --retry-max-count is invalid, must be greater than zero")
@@ -105,49 +107,6 @@ func (args *RemoveArguments) Validate() {
 		if !args.IsGlobal {
 			log.Fatal("error: must select --mapusers or --maproles")
 		}
-	}
-}
-
-// UpsertArguments are the arguments for upserting a mapRole or mapUsers
-type UpsertArguments struct {
-	KubeconfigPath string
-	MapRoles       bool
-	MapUsers       bool
-	Username       string
-	RoleARN        string
-	UserARN        string
-	Groups         []string
-	WithRetries    bool
-	MinRetryTime   time.Duration
-	MaxRetryTime   time.Duration
-	MaxRetryCount  int
-}
-
-func (args *UpsertArguments) Validate() {
-	if args.WithRetries {
-		if args.MaxRetryCount < 1 {
-			log.Fatal("error: --retry-max-count is invalid, must be greater than zero")
-		}
-	}
-
-	if args.RoleARN == "" && args.MapRoles {
-		log.Fatal("error: --rolearn not provided")
-	}
-
-	if args.UserARN == "" && args.MapUsers {
-		log.Fatal("error: --userarn not provided")
-	}
-
-	if args.Username == "" {
-		log.Fatal("error: --username not provided")
-	}
-
-	if args.MapUsers && args.MapRoles {
-		log.Fatal("error: --mapusers and --maproles are mutually exclusive")
-	}
-
-	if !args.MapUsers && !args.MapRoles {
-		log.Fatal("error: must select --mapusers or --maproles")
 	}
 }
 
@@ -227,4 +186,34 @@ func (r *RolesAuthMap) SetUsername(v string) *RolesAuthMap {
 func (r *RolesAuthMap) SetGroups(g []string) *RolesAuthMap {
 	r.Groups = g
 	return r
+}
+
+func WithRetry(fn func(*MapperArguments) error, args *MapperArguments) error {
+	// Update the config map and return an AuthMap
+	var (
+		counter int
+		err     error
+		bkoff   = &backoff.Backoff{
+			Min:    args.MinRetryTime,
+			Max:    args.MaxRetryTime,
+			Factor: DefaultRetryerBackoffFactor,
+			Jitter: DefaultRetryerBackoffJitter,
+		}
+	)
+
+	for {
+		if counter >= args.MaxRetryCount {
+			break
+		}
+
+		if err = fn(args); err != nil {
+			d := bkoff.Duration()
+			log.Printf("error: %v: will retry after %v", err, d)
+			time.Sleep(d)
+			counter++
+			continue
+		}
+		return nil
+	}
+	return errors.Wrap(err, "waiter timed out")
 }

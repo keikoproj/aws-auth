@@ -23,7 +23,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var removeArgs = &mapper.RemoveArguments{}
+var removeArgs = &mapper.MapperArguments{}
 
 // deleteCmd represents the base command when called without any subcommands
 var removeCmd = &cobra.Command{
@@ -45,7 +45,7 @@ var removeCmd = &cobra.Command{
 
 // removeByUsernameCmd removes all map roles and map users in an auth cm based on the input username
 func removeByUsernameCmd() *cobra.Command {
-	var removeArgs = &mapper.RemoveArguments{}
+	var removeArgs = &mapper.MapperArguments{}
 	var command = &cobra.Command{
 		Use:   "remove-by-username",
 		Short: "remove-by-username removes all map roles and map users from the aws-auth configmap",

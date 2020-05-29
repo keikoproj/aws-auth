@@ -23,7 +23,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var upsertArgs = &mapper.UpsertArguments{}
+var upsertArgs = &mapper.MapperArguments{}
 
 // upsertCmd represents the base command when called without any subcommands
 var upsertCmd = &cobra.Command{
