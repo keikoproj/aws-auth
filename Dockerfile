@@ -1,8 +1,7 @@
 FROM golang:1.13-alpine
 
-RUN apk add --update \
-    python \
-    python-dev \
+RUN apk add --update --no-cache \
+    curl \
     py-pip \
     build-base \
     git \
