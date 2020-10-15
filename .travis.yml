@@ -15,6 +15,7 @@ jobs:
       script:
       - go test -v ./... -coverprofile ./coverage.txt
       - bash <(curl -s https://codecov.io/bash)
+      - make docker-build
 
     - stage: publish-image
       if: type IN (push)
