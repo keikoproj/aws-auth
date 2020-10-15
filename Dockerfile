@@ -1,6 +1,6 @@
 FROM golang:1.13-alpine
 
-RUN apk add --update \
+RUN apk add --update --no-cache \
     python \
     python-dev \
     py-pip \
