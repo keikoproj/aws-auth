@@ -75,6 +75,9 @@ func (b *AuthMapper) removeAuthByUser(args *MapperArguments) error {
 	if !removed {
 		msg := fmt.Sprintf("failed to remove based on username %v, found zero matches\n", args.Username)
 		log.Printf(msg)
+		if args.Force {
+			return nil
+		}
 		return errors.New(msg)
 	}
 
@@ -97,6 +100,9 @@ func (b *AuthMapper) removeAuth(args *MapperArguments) error {
 
 		if !ok {
 			log.Printf("failed to remove %v, could not find exact match\n", rolesResource.RoleARN)
+			if args.Force {
+				return nil
+			}
 			return errors.New("could not find rolemap")
 		}
 		log.Printf("removed %v from aws-auth\n", rolesResource.RoleARN)
@@ -109,6 +115,9 @@ func (b *AuthMapper) removeAuth(args *MapperArguments) error {
 
 		if !ok {
 			log.Printf("failed to remove %v, could not find exact match\n", usersResource.UserARN)
+			if args.Force {
+				return nil
+			}
 			return errors.New("could not find rolemap")
 		}
 		log.Printf("removed %v from aws-auth\n", usersResource.UserARN)

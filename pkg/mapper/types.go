@@ -81,6 +81,7 @@ type MapperArguments struct {
 	OperationType  OperationType
 	MapRoles       bool
 	MapUsers       bool
+	Force          bool
 	Username       string
 	RoleARN        string
 	UserARN        string
