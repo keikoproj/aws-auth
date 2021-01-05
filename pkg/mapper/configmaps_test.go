@@ -16,6 +16,7 @@ limitations under the License.
 package mapper
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -45,7 +46,7 @@ func create_MockConfigMap(client kubernetes.Interface) {
 			"mapUsers": user.String(),
 		},
 	}
-	_, err := client.CoreV1().ConfigMaps(AwsAuthNamespace).Create(configMap)
+	_, err := client.CoreV1().ConfigMaps(AwsAuthNamespace).Create(context.Background(), configMap, metav1.CreateOptions{})
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
 }

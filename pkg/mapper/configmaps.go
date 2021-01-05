@@ -16,6 +16,8 @@ limitations under the License.
 package mapper
 
 import (
+	"context"
+
 	yaml "gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -32,7 +34,7 @@ const (
 func ReadAuthMap(k kubernetes.Interface) (AwsAuthData, *v1.ConfigMap, error) {
 	var authData AwsAuthData
 
-	cm, err := k.CoreV1().ConfigMaps(AwsAuthNamespace).Get(AwsAuthName, metav1.GetOptions{})
+	cm, err := k.CoreV1().ConfigMaps(AwsAuthNamespace).Get(context.Background(), AwsAuthName, metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
 			cm, err = CreateAuthMap(k)
@@ -64,7 +66,7 @@ func CreateAuthMap(k kubernetes.Interface) (*v1.ConfigMap, error) {
 			Namespace: "kube-system",
 		},
 	}
-	configMap, err := k.CoreV1().ConfigMaps("kube-system").Create(configMapObject)
+	configMap, err := k.CoreV1().ConfigMaps(AwsAuthNamespace).Create(context.Background(), configMapObject, metav1.CreateOptions{})
 	if err != nil {
 		return configMap, err
 	}
@@ -89,7 +91,7 @@ func UpdateAuthMap(k kubernetes.Interface, authData AwsAuthData, cm *v1.ConfigMa
 		"mapUsers": string(mapUsers),
 	}
 
-	cm, err = k.CoreV1().ConfigMaps(AwsAuthNamespace).Update(cm)
+	cm, err = k.CoreV1().ConfigMaps(AwsAuthNamespace).Update(context.Background(), cm, metav1.UpdateOptions{})
 	if err != nil {
 		return err
 	}
