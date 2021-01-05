@@ -66,7 +66,7 @@ func CreateAuthMap(k kubernetes.Interface) (*v1.ConfigMap, error) {
 			Namespace: "kube-system",
 		},
 	}
-	configMap, err := k.CoreV1().ConfigMaps("kube-system").Create(context.Background(), configMapObject, metav1.CreateOptions{})
+	configMap, err := k.CoreV1().ConfigMaps(AwsAuthNamespace).Create(context.Background(), configMapObject, metav1.CreateOptions{})
 	if err != nil {
 		return configMap, err
 	}
