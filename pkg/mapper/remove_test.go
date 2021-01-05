@@ -102,6 +102,33 @@ func TestMapper_RemoveNotFound(t *testing.T) {
 	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
 }
 
+func TestMapper_RemoveNotFoundForce(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+	create_MockConfigMap(client)
+
+	err := mapper.Remove(&MapperArguments{
+		Force:    true,
+		MapRoles: true,
+		RoleARN:  "arn:aws:iam::00000000000:role/node-2",
+	})
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	err = mapper.Remove(&MapperArguments{
+		Force:    true,
+		MapUsers: true,
+		UserARN:  "arn:aws:iam::00000000000:user/user-2",
+	})
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	auth, _, err := ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(len(auth.MapRoles)).To(gomega.Equal(1))
+	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
+}
+
 func TestMapper_RemoveByUsername(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
