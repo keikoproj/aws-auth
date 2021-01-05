@@ -82,6 +82,7 @@ func init() {
 	removeCmd.Flags().StringVar(&removeArgs.RoleARN, "rolearn", "", "Role ARN to remove")
 	removeCmd.Flags().StringVar(&removeArgs.UserARN, "userarn", "", "User ARN to remove")
 	removeCmd.Flags().StringSliceVar(&removeArgs.Groups, "groups", []string{}, "Groups to remove")
+	removeCmd.Flags().BoolVar(&removeArgs.Force, "force", false, "Ignores not found errors")
 	removeCmd.Flags().BoolVar(&removeArgs.MapRoles, "maproles", false, "Removes a role")
 	removeCmd.Flags().BoolVar(&removeArgs.MapUsers, "mapusers", false, "Removes a user")
 	removeCmd.Flags().BoolVar(&removeArgs.WithRetries, "retry", false, "Retry on failure with exponential backoff")
