@@ -40,7 +40,7 @@ jobs:
       id: docker_meta
       uses: crazy-max/ghaction-docker-meta@v1
       with:
-        images: ${{ github.repository_owner }}/instance-manager
+        images: ${{ github.repository_owner }}/aws-auth
 
     - name: Build and push
       uses: docker/build-push-action@v2
