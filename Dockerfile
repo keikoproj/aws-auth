@@ -1,4 +1,4 @@
-FROM golang:1.17-alpine
+FROM golang:1.17-alpine as build
 
 RUN apk add --update --no-cache \
     curl \
@@ -12,9 +12,12 @@ COPY . .
 RUN git rev-parse HEAD
 RUN date +%FT%T%z
 RUN make build
-RUN cp ./bin/aws-auth /bin/aws-auth \
-    && chmod +x /bin/aws-auth
-ENV HOME /root
+RUN chmod +x ./bin/aws-auth
 
+# Now copy it into our base image.
+FROM gcr.io/distroless/base-debian11
+COPY --from=build /go/src/github.com/keikoproj/aws-auth/bin/aws-auth /bin/aws-auth
+
+ENV HOME /root
 ENTRYPOINT ["/bin/aws-auth"]
 CMD ["help"]
