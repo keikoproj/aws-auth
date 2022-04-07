@@ -30,6 +30,6 @@ spec:
     # 'files' lists which files should be extracted out from downloaded archive
     files:
     - from: "aws-auth"
-      to: "./aws-auth"
+      to: "aws-auth"
     # 'bin' specifies the path to the the plugin executable among extracted files
     bin: aws-auth
