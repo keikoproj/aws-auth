@@ -26,7 +26,7 @@ spec:
     # 'uri' specifies .zip or .tar.gz archive URL of a plugin
     uri: https://github.com/jicowan/aws-auth/blob/master/aws-auth.tar.gz
     # 'sha256' is the sha256sum of the url above
-    sha256: 50931dfe8c1e6b1e73c952bfc05ed3c13f82a209366275ea018b421e097331dc
+    sha256: 5e2e362f31557487133007684bcc8dd010ad73d3bf2b554eb7e51c68cc004611
     # 'files' lists which files should be extracted out from downloaded archive
     files:
     - from: "aws-auth"
