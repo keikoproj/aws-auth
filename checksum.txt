@@ -1,1 +1,0 @@
-https://github.com/jicowan/aws-auth/blob/master/aws-auth.tar.gz
