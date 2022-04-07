@@ -1,0 +1,35 @@
+apiVersion: krew.googlecontainertools.github.com/v1alpha2
+kind: Plugin
+metadata:
+  # 'name' must match the filename of the manifest. The name defines how
+  # the plugin is invoked, for example: `kubectl restart`
+  name: aws-auth
+spec:
+  # 'version' is a valid semantic version string (see semver.org)
+  version: "v0.0.1"
+  # 'homepage' usually links to the GitHub repository of the plugin
+  homepage: https://github.com/jicowan/aws-auth
+  # 'shortDescription' explains what the plugin does in only a few words
+  shortDescription: "Makes the management of the aws-auth config map for EKS Kubernetes clusters easier"
+  description: |
+    Useful for automation purposes, any workflow that needs 
+    to grant IAM access to an EKS cluster can use this plugin 
+    to modify the config map.
+  # 'platforms' specify installation methods for various platforms (os/arch)
+  platforms:
+  - selector:
+      matchExpressions:
+      - key: "os"
+        operator: "In"
+        values:
+        - darwin
+    # 'uri' specifies .zip or .tar.gz archive URL of a plugin
+    uri: https://github.com/achanda/kubectl-restart/archive/v0.0.3.zip
+    # 'sha256' is the sha256sum of the url above
+    sha256: d7079b79bf4e10e55ded435a2e862efe310e019b6c306a8ff04191238ef4b2b4
+    # 'files' lists which files should be extracted out from downloaded archive
+    files:
+    - from: "aws-auth"
+      to: "./aws-auth"
+    # 'bin' specifies the path to the the plugin executable among extracted files
+    bin: aws-auth
