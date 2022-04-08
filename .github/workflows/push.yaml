@@ -41,6 +41,10 @@ jobs:
       uses: docker/metadata-action@v3
       with:
         images: ${{ github.repository_owner }}/aws-auth
+        tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
 
     - name: Build and push
       uses: docker/build-push-action@v2
