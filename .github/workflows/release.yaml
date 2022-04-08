@@ -1,0 +1,31 @@
+name: Release aws-auth binaries
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  releases-matrix:
+    name: Release Go Binary
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Setup Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: ^1.17
+
+      - name: GoReleaser
+        uses: goreleaser/goreleaser-action@v1
+        with:
+          version: latest
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # TODO: Test using krew-release-bot later
+
+      # - name: Update new version in krew-index
+      #   uses: rajatjindal/krew-release-bot@v0.0.42
