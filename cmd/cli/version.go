@@ -30,7 +30,7 @@ var (
 	//It should be set during build via -ldflags.
 	buildDate string
 	// version is the aws-auth package version
-	pkgVersion string = "0.3.2"
+	pkgVersion string = "dev"
 )
 
 // Info holds the information related to descheduler app version.
