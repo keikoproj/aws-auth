@@ -1,0 +1,30 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+builds:
+  - id: aws-auth
+    main: ./
+    binary: aws-auth
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    ldflags:
+      - -s 
+      - -w 
+      - -X github.com/keikoproj/aws-auth/cmd/cli.gitCommit={{.Commit}} 
+      - -X github.com/keikoproj/aws-auth/cmd/cli.buildDate={{.Date}} 
+      - -X github.com/keikoproj/aws-auth/cmd/cli.pkgVersion={{.Version}}
+archives:
+  - builds:
+    - aws-auth
+    name_template: "{{ .ProjectName }}_{{ .Tag }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    wrap_in_directory: false
+    format: tar.gz
+    files:
+    - LICENSE
