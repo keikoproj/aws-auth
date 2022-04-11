@@ -26,8 +26,14 @@ spec:
   - selector:
       matchLabels:
         os: linux
-        arch: amd64
-    {{ addURIAndSha https://github.com/keikoproj/aws-auth/releases/download/{{ .TagName }}/aws-auth_{{ .TagName }}_linux_amd64.tar.gz" .TagName }}
+        arch: arm64
+    {{addURIAndSha https://github.com/keikoproj/aws-auth/releases/download/{{ .TagName }}/aws_auth_{{ .TagName }}_linux_arm64.tar.gz" .TagName }}
+    bin: aws-auth
+  - selector:
+      matchLabels:
+        os: linux
+        arch: arm64
+    {{addURIAndSha https://github.com/keikoproj/aws-auth/releases/download/{{ .TagName }}/aws_auth_{{ .TagName }}_linux_arm64.tar.gz" .TagName }}
     bin: aws-auth
   - selector:
       matchLabels:
