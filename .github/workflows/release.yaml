@@ -25,7 +25,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # TODO: Test using krew-release-bot later
-
-      # - name: Update new version in krew-index
-      #   uses: rajatjindal/krew-release-bot@v0.0.42
+      - name: Update new version in krew-index
+        uses: rajatjindal/krew-release-bot@v0.0.42
