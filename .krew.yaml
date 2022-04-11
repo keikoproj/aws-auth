@@ -35,7 +35,7 @@ spec:
         arch: amd64
     {{addURIAndSha "https://github.com/keikoproj/aws-auth/releases/download/{{ .TagName }}/aws-auth_{{ .TagName }}_linux_amd64.tar.gz" .TagName }}
     bin: aws-auth
-    - selector:
+  - selector:
       matchLabels:
         os: linux
         arch: arm64
