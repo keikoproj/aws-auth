@@ -1,0 +1,49 @@
+apiVersion: krew.googlecontainertools.github.com/v1alpha2
+kind: Plugin
+metadata:
+  # 'name' must match the filename of the manifest. The name defines how
+  # the plugin is invoked, for example: `kubectl restart`
+  name: aws-auth
+spec:
+  # 'version' is a valid semantic version string (see semver.org)
+  version: {{ .TagName }}
+  # 'homepage' usually links to the GitHub repository of the plugin
+  homepage: https://github.com/keiko/aws-auth
+  # 'shortDescription' explains what the plugin does in only a few words
+  shortDescription: "Makes the management of the aws-auth config map for EKS Kubernetes clusters easier"
+  description: |
+    Useful for automation purposes, any workflow that needs 
+    to grant IAM access to an EKS cluster can use this plugin 
+    to modify the config map.
+  # 'platforms' specify installation methods for various platforms (os/arch)
+  platforms:
+  - selector:
+      matchLabels:
+        os: darwin
+        arch: amd64
+    {{addURIAndSha https://github.com/keikoproj/aws-auth/releases/download/{{ .TagName }}/aws-auth_{{ .TagName }}_darwin_amd64.tar.gz" .TagName }}
+    bin: aws-auth
+  - selector:
+      matchLabels:
+        os: darwin
+        arch: arm64
+    {{addURIAndSha https://github.com/keikoproj/aws-auth/releases/download/{{ .TagName }}/aws-auth_{{ .TagName }}_darwin_arm64.tar.gz" .TagName }}
+    bin: aws-auth
+  - selector:
+      matchLabels:
+        os: linux
+        arch: amd64
+    {{addURIAndSha https://github.com/keikoproj/aws-auth/releases/download/{{ .TagName }}/aws-auth_{{ .TagName }}_linux_amd64.tar.gz" .TagName }}
+    bin: aws-auth
+    - selector:
+      matchLabels:
+        os: linux
+        arch: arm64
+    {{addURIAndSha https://github.com/keikoproj/aws-auth/releases/download/{{ .TagName }}/aws-auth_{{ .TagName }}_linux_arm64.tar.gz" .TagName }}
+    bin: aws-auth
+  - selector:
+      matchLabels:
+        os: windows
+        arch: amd64
+    {{ addURIAndSha https://github.com/keikoproj/aws-auth/releases/download/{{ .TagName }}/aws-auth_{{ .TagName }}_windows_amd64.tar.gz" .TagName }}
+    bin: aws-auth.exe
