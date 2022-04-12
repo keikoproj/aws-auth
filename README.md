@@ -26,6 +26,7 @@ $
 Either download/install a released binary or add as a plugin to kubectl via Krew
 
 ```text
+$ kubectl krew update
 $ kubectl krew install aws-auth
 Installing plugin: aws-auth
 Installed plugin: aws-auth
