@@ -21,24 +21,32 @@ $ go get github.com/keikoproj/aws-auth
 $
 ```
 
-## Usage from command line
+## Usage from command line or Krew
+
+Either download/install a released binary or add as a plugin to kubectl via Krew
 
 ```text
-$ aws-auth
+$ kubectl krew install aws-auth
+Installing plugin: aws-auth
+Installed plugin: aws-auth
+
+$ kubectl krew aws-auth
 aws-auth modifies the aws-auth configmap on eks clusters
 
 Usage:
   aws-auth [command]
 
 Available Commands:
-  help        Help about any command
-  remove      remove removes an auth-map from mapRoles or mapUsers
+  help               Help about any command
+  remove             remove removes a user or role from the aws-auth configmap
   remove-by-username remove-by-username removes all map roles and map users from the aws-auth configmap
-  upsert      upsert updates or inserts an auth-map to mapRoles
-  version     Version of aws-auth
+  upsert             upsert updates or inserts a user or role to the aws-auth configmap
+  version            Version of aws-auth
 
 Flags:
   -h, --help   help for aws-auth
+
+Use "aws-auth [command] --help" for more information about a command.
 ```
 
 Given a config map with the following data:
