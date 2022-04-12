@@ -18,7 +18,6 @@
 
 ```text
 $ go get github.com/keikoproj/aws-auth
-$
 ```
 
 ## Usage from command line or Krew
