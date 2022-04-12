@@ -5,11 +5,11 @@ metadata:
 spec:
   version: {{ .TagName }}
   homepage: https://github.com/keikoproj/aws-auth
-  shortDescription: Makes the management of the aws-auth config map for EKS Kubernetes clusters easier
+  shortDescription: Manage aws-auth ConfigMap
   description: |
-    Useful for automation purposes, any workflow that needs 
-    to grant IAM access to an EKS cluster can use this plugin 
-    to modify the config map.
+    This plugin allows upserting and removing IAM mappings from the
+    aws-auth configmap in order to manage access to EKS clusters for
+    roles or users.
   platforms:
   - selector:
       matchLabels:
