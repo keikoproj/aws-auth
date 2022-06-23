@@ -125,6 +125,12 @@ Retries are configurable using the following flags
       --retry-min-time duration   Minimum wait interval (default 200ms)
 ```
 
+
+Append group if iam role or iam user already exists
+
+```
+aws-auth upsert  --maproles --rolearn arn:aws:iam::00000000000:role/test  --username test   --groups test --append-groups
+```
 ## Usage as a library
 
 ```go
