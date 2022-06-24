@@ -31,18 +31,20 @@ func TestMapper_UpsertInsert(t *testing.T) {
 	create_MockConfigMap(client)
 
 	err := mapper.Upsert(&MapperArguments{
-		MapRoles: true,
-		RoleARN:  "arn:aws:iam::00000000000:role/node-2",
-		Username: "system:node:{{EC2PrivateDNSName}}",
-		Groups:   []string{"system:bootstrappers", "system:nodes"},
+		MapRoles:       true,
+		RoleARN:        "arn:aws:iam::00000000000:role/node-2",
+		Username:       "system:node:{{EC2PrivateDNSName}}",
+		Groups:         []string{"system:bootstrappers", "system:nodes"},
+		UpdateUsername: true,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	err = mapper.Upsert(&MapperArguments{
-		MapUsers: true,
-		UserARN:  "arn:aws:iam::00000000000:user/user-2",
-		Username: "admin",
-		Groups:   []string{"system:masters"},
+		MapUsers:       true,
+		UserARN:        "arn:aws:iam::00000000000:user/user-2",
+		Username:       "admin",
+		Groups:         []string{"system:masters"},
+		UpdateUsername: true,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
@@ -60,18 +62,20 @@ func TestMapper_UpsertUpdate(t *testing.T) {
 	create_MockConfigMap(client)
 
 	err := mapper.Upsert(&MapperArguments{
-		MapRoles: true,
-		RoleARN:  "arn:aws:iam::00000000000:role/node-1",
-		Username: "this:is:a:test",
-		Groups:   []string{"system:some-role"},
+		MapRoles:       true,
+		RoleARN:        "arn:aws:iam::00000000000:role/node-1",
+		Username:       "this:is:a:test",
+		Groups:         []string{"system:some-role"},
+		UpdateUsername: true,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	err = mapper.Upsert(&MapperArguments{
-		MapUsers: true,
-		UserARN:  "arn:aws:iam::00000000000:user/user-1",
-		Username: "this:is:a:test",
-		Groups:   []string{"system:some-role"},
+		MapUsers:       true,
+		UserARN:        "arn:aws:iam::00000000000:user/user-1",
+		Username:       "this:is:a:test",
+		Groups:         []string{"system:some-role"},
+		UpdateUsername: true,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
@@ -95,18 +99,20 @@ func TestMapper_UpsertNotNeeded(t *testing.T) {
 	create_MockConfigMap(client)
 
 	err := mapper.Upsert(&MapperArguments{
-		MapRoles: true,
-		RoleARN:  "arn:aws:iam::00000000000:role/node-1",
-		Username: "system:node:{{EC2PrivateDNSName}}",
-		Groups:   []string{"system:bootstrappers", "system:nodes"},
+		MapRoles:       true,
+		RoleARN:        "arn:aws:iam::00000000000:role/node-1",
+		Username:       "system:node:{{EC2PrivateDNSName}}",
+		Groups:         []string{"system:bootstrappers", "system:nodes"},
+		UpdateUsername: true,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	err = mapper.Upsert(&MapperArguments{
-		MapUsers: true,
-		UserARN:  "arn:aws:iam::00000000000:user/user-1",
-		Username: "admin",
-		Groups:   []string{"system:masters"},
+		MapUsers:       true,
+		UserARN:        "arn:aws:iam::00000000000:user/user-1",
+		Username:       "admin",
+		Groups:         []string{"system:masters"},
+		UpdateUsername: true,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
@@ -123,18 +129,20 @@ func TestMapper_UpsertWithCreate(t *testing.T) {
 	mapper := New(client, true)
 
 	err := mapper.Upsert(&MapperArguments{
-		MapRoles: true,
-		RoleARN:  "arn:aws:iam::00000000000:role/node-1",
-		Username: "this:is:a:test",
-		Groups:   []string{"system:some-role"},
+		MapRoles:       true,
+		RoleARN:        "arn:aws:iam::00000000000:role/node-1",
+		Username:       "this:is:a:test",
+		Groups:         []string{"system:some-role"},
+		UpdateUsername: true,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	err = mapper.Upsert(&MapperArguments{
-		MapUsers: true,
-		UserARN:  "arn:aws:iam::00000000000:user/user-1",
-		Username: "this:is:a:test",
-		Groups:   []string{"system:some-role"},
+		MapUsers:       true,
+		UserARN:        "arn:aws:iam::00000000000:user/user-1",
+		Username:       "this:is:a:test",
+		Groups:         []string{"system:some-role"},
+		UpdateUsername: true,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
@@ -342,26 +350,28 @@ func TestMapper_UpsertWithRetries(t *testing.T) {
 	create_MockConfigMap(client)
 
 	err := mapper.Upsert(&MapperArguments{
-		MapRoles:      true,
-		RoleARN:       "arn:aws:iam::00000000000:role/node-2",
-		Username:      "system:node:{{EC2PrivateDNSName}}",
-		Groups:        []string{"system:bootstrappers", "system:nodes"},
-		WithRetries:   true,
-		MinRetryTime:  time.Millisecond * 1,
-		MaxRetryTime:  time.Millisecond * 2,
-		MaxRetryCount: 3,
+		MapRoles:       true,
+		RoleARN:        "arn:aws:iam::00000000000:role/node-2",
+		Username:       "system:node:{{EC2PrivateDNSName}}",
+		Groups:         []string{"system:bootstrappers", "system:nodes"},
+		WithRetries:    true,
+		MinRetryTime:   time.Millisecond * 1,
+		MaxRetryTime:   time.Millisecond * 2,
+		MaxRetryCount:  3,
+		UpdateUsername: true,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	err = mapper.Upsert(&MapperArguments{
-		MapUsers:      true,
-		UserARN:       "arn:aws:iam::00000000000:user/user-2",
-		Username:      "admin",
-		Groups:        []string{"system:masters"},
-		WithRetries:   true,
-		MinRetryTime:  time.Millisecond * 1,
-		MaxRetryTime:  time.Millisecond * 2,
-		MaxRetryCount: 3,
+		MapUsers:       true,
+		UserARN:        "arn:aws:iam::00000000000:user/user-2",
+		Username:       "admin",
+		Groups:         []string{"system:masters"},
+		WithRetries:    true,
+		MinRetryTime:   time.Millisecond * 1,
+		MaxRetryTime:   time.Millisecond * 2,
+		MaxRetryCount:  3,
+		UpdateUsername: true,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
@@ -379,22 +389,24 @@ func TestUpsertWithRetries(t *testing.T) {
 	create_MockConfigMap(client)
 
 	err := mapper.Upsert(&MapperArguments{
-		MapRoles:      true,
-		RoleARN:       "arn:aws:iam::00000000000:role/node-1",
-		Username:      "this:is:a:test",
-		Groups:        []string{"system:some-role"},
-		WithRetries:   true,
-		MaxRetryCount: 12,
-		MaxRetryTime:  1 * time.Millisecond,
-		MinRetryTime:  1 * time.Millisecond,
+		MapRoles:       true,
+		RoleARN:        "arn:aws:iam::00000000000:role/node-1",
+		Username:       "this:is:a:test",
+		Groups:         []string{"system:some-role"},
+		WithRetries:    true,
+		MaxRetryCount:  12,
+		MaxRetryTime:   1 * time.Millisecond,
+		MinRetryTime:   1 * time.Millisecond,
+		UpdateUsername: true,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	err = mapper.Upsert(&MapperArguments{
-		MapUsers: true,
-		UserARN:  "arn:aws:iam::00000000000:user/user-1",
-		Username: "this:is:a:test",
-		Groups:   []string{"system:some-role"},
+		MapUsers:       true,
+		UserARN:        "arn:aws:iam::00000000000:user/user-1",
+		Username:       "this:is:a:test",
+		Groups:         []string{"system:some-role"},
+		UpdateUsername: true,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
@@ -418,20 +430,22 @@ func TestMapper_UpsertUpdateAppendGroups(t *testing.T) {
 	create_MockConfigMap(client)
 
 	err := mapper.Upsert(&MapperArguments{
-		MapRoles:     true,
-		RoleARN:      "arn:aws:iam::00000000000:role/node-1",
-		Username:     "this:is:a:test",
-		Groups:       []string{"appendedGroup"},
-		AppendGroups: true,
+		MapRoles:       true,
+		RoleARN:        "arn:aws:iam::00000000000:role/node-1",
+		Username:       "this:is:a:test",
+		Groups:         []string{"appendedGroup"},
+		Append:         true,
+		UpdateUsername: true,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	err = mapper.Upsert(&MapperArguments{
-		MapUsers:     true,
-		UserARN:      "arn:aws:iam::00000000000:user/user-1",
-		Username:     "this:is:a:test",
-		Groups:       []string{"appendedGroup"},
-		AppendGroups: true,
+		MapUsers:       true,
+		UserARN:        "arn:aws:iam::00000000000:user/user-1",
+		Username:       "this:is:a:test",
+		Groups:         []string{"appendedGroup"},
+		Append:         true,
+		UpdateUsername: true,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
@@ -455,20 +469,20 @@ func TestMapper_UpdateUsername(t *testing.T) {
 	create_MockConfigMap(client)
 
 	err := mapper.Upsert(&MapperArguments{
-		MapRoles:           true,
-		RoleARN:            "arn:aws:iam::00000000000:role/node-1",
-		Username:           "this:is:a:test",
-		Groups:             []string{"system:bootstrappers", "system:nodes"},
-		DontUpdateUsername: true,
+		MapRoles:       true,
+		RoleARN:        "arn:aws:iam::00000000000:role/node-1",
+		Username:       "this:is:a:test",
+		Groups:         []string{"system:bootstrappers", "system:nodes"},
+		UpdateUsername: false,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	err = mapper.Upsert(&MapperArguments{
-		MapUsers:           true,
-		UserARN:            "arn:aws:iam::00000000000:user/user-1",
-		Username:           "this:is:a:test",
-		Groups:             []string{"system:masters"},
-		DontUpdateUsername: true,
+		MapUsers:       true,
+		UserARN:        "arn:aws:iam::00000000000:user/user-1",
+		Username:       "this:is:a:test",
+		Groups:         []string{"system:masters"},
+		UpdateUsername: false,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 

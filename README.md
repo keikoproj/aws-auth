@@ -126,11 +126,30 @@ Retries are configurable using the following flags
 ```
 
 
-Append group if iam role or iam user already exists
+Append group if iam role already exists
 
 ```
-aws-auth upsert  --maproles --rolearn arn:aws:iam::00000000000:role/test  --username test   --groups test --append-groups
+aws-auth upsert  --maproles --rolearn arn:aws:iam::00000000000:role/test  --username test   --groups test --append
 ```
+
+Append group if iam user already exists
+
+```
+aws-auth upsert  --maproles --rolearn arn:aws:iam::00000000000:role/test  --username test   --groups test --append
+```
+
+Update username during upsert (default is true)
+
+```
+aws-auth upsert  --maproles --rolearn arn:aws:iam::00000000000:role/test  --username test   --groups test
+```
+
+Do not update username during upsert
+
+```
+aws-auth upsert  --maproles --rolearn arn:aws:iam::00000000000:role/test  --username test   --groups test --update-username=false
+```
+
 ## Usage as a library
 
 ```go
@@ -156,6 +175,7 @@ func someFunc(client kubernetes.Interface) error {
         MinRetryTime:  time.Millisecond * 100,
         MaxRetryTime:  time.Second * 30,
         MaxRetryCount: 12,
+        UpdateUsername: true
     }
 
     err = awsAuth.Upsert(myUpsertRole)

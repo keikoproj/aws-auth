@@ -77,22 +77,22 @@ const (
 
 // MapperArguments are the arguments for removing a mapRole or mapUsers
 type MapperArguments struct {
-	KubeconfigPath     string
-	OperationType      OperationType
-	MapRoles           bool
-	MapUsers           bool
-	Force              bool
-	Username           string
-	RoleARN            string
-	UserARN            string
-	Groups             []string
-	WithRetries        bool
-	MinRetryTime       time.Duration
-	MaxRetryTime       time.Duration
-	MaxRetryCount      int
-	IsGlobal           bool
-	AppendGroups       bool
-	DontUpdateUsername bool
+	KubeconfigPath string
+	OperationType  OperationType
+	MapRoles       bool
+	MapUsers       bool
+	Force          bool
+	Username       string
+	RoleARN        string
+	UserARN        string
+	Groups         []string
+	WithRetries    bool
+	MinRetryTime   time.Duration
+	MaxRetryTime   time.Duration
+	MaxRetryCount  int
+	IsGlobal       bool
+	Append         bool
+	UpdateUsername bool
 }
 
 func (args *MapperArguments) Validate() {
@@ -243,4 +243,9 @@ func WithRetry(fn func(*MapperArguments) error, args *MapperArguments) error {
 		return nil
 	}
 	return errors.Wrap(err, "waiter timed out")
+}
+
+type UpsertOptions struct {
+	Append         bool
+	UpdateUsername bool
 }
