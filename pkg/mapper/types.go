@@ -50,6 +50,7 @@ func New(client kubernetes.Interface, isCommandline bool) *AuthMapper {
 var (
 	DefaultRetryerBackoffFactor float64 = 2.0
 	DefaultRetryerBackoffJitter         = true
+	UpdateUsernameArgumentTrue  bool    = true
 )
 
 // AwsAuthData represents the data of the aws-auth configmap
@@ -77,23 +78,22 @@ const (
 
 // MapperArguments are the arguments for removing a mapRole or mapUsers
 type MapperArguments struct {
-	KubeconfigPath     string
-	OperationType      OperationType
-	MapRoles           bool
-	MapUsers           bool
-	Force              bool
-	Username           string
-	RoleARN            string
-	UserARN            string
-	Groups             []string
-	WithRetries        bool
-	MinRetryTime       time.Duration
-	MaxRetryTime       time.Duration
-	MaxRetryCount      int
-	IsGlobal           bool
-	Append             bool
-	UpdateUsername     string
-	UpdateUsernameBool bool
+	KubeconfigPath string
+	OperationType  OperationType
+	MapRoles       bool
+	MapUsers       bool
+	Force          bool
+	Username       string
+	RoleARN        string
+	UserARN        string
+	Groups         []string
+	WithRetries    bool
+	MinRetryTime   time.Duration
+	MaxRetryTime   time.Duration
+	MaxRetryCount  int
+	IsGlobal       bool
+	Append         bool
+	UpdateUsername *bool
 }
 
 func (args *MapperArguments) Validate() {
@@ -125,13 +125,17 @@ func (args *MapperArguments) Validate() {
 		}
 	}
 
-	switch update := args.UpdateUsername; update {
-	case "false":
-		args.UpdateUsernameBool = false
-	case "true":
-		args.UpdateUsernameBool = true
-	default:
-		args.UpdateUsernameBool = true
+	// switch update := args.UpdateUsername; update {
+	// case "false":
+	// 	args.UpdateUsernameBool = false
+	// case "true":
+	// 	args.UpdateUsernameBool = true
+	// default:
+	// 	args.UpdateUsernameBool = true
+	// }
+
+	if args.UpdateUsername == nil {
+		args.UpdateUsername = &UpdateUsernameArgumentTrue
 	}
 
 }

@@ -152,7 +152,7 @@ func (b *AuthMapper) upsertAuth(args *MapperArguments) error {
 
 	opts := &UpsertOptions{
 		Append:         args.Append,
-		UpdateUsername: args.UpdateUsernameBool,
+		UpdateUsername: *args.UpdateUsername,
 	}
 
 	if args.MapRoles {

@@ -454,12 +454,14 @@ func TestMapper_UpdateUsername(t *testing.T) {
 	mapper := New(client, true)
 	create_MockConfigMap(client)
 
+	updateUsername := false
+
 	err := mapper.Upsert(&MapperArguments{
 		MapRoles:       true,
 		RoleARN:        "arn:aws:iam::00000000000:role/node-1",
 		Username:       "this:is:a:test",
 		Groups:         []string{"system:bootstrappers", "system:nodes"},
-		UpdateUsername: "false",
+		UpdateUsername: &updateUsername,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
@@ -468,7 +470,7 @@ func TestMapper_UpdateUsername(t *testing.T) {
 		UserARN:        "arn:aws:iam::00000000000:user/user-1",
 		Username:       "this:is:a:test",
 		Groups:         []string{"system:masters"},
-		UpdateUsername: "false",
+		UpdateUsername: &updateUsername,
 	})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
