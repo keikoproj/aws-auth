@@ -125,15 +125,6 @@ func (args *MapperArguments) Validate() {
 		}
 	}
 
-	// switch update := args.UpdateUsername; update {
-	// case "false":
-	// 	args.UpdateUsernameBool = false
-	// case "true":
-	// 	args.UpdateUsernameBool = true
-	// default:
-	// 	args.UpdateUsernameBool = true
-	// }
-
 	if args.UpdateUsername == nil {
 		args.UpdateUsername = &UpdateUsernameArgumentTrue
 	}
