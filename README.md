@@ -125,29 +125,16 @@ Retries are configurable using the following flags
       --retry-min-time duration   Minimum wait interval (default 200ms)
 ```
 
-
-Append group if iam role already exists
-
-```
-aws-auth upsert  --maproles --rolearn arn:aws:iam::00000000000:role/test  --username test   --groups test --append
-```
-
-Append group if iam user already exists
+Append groups to mapping instead of overwriting by using --append
 
 ```
-aws-auth upsert  --maproles --rolearn arn:aws:iam::00000000000:role/test  --username test   --groups test --append
+aws-auth upsert --maproles --rolearn arn:aws:iam::00000000000:role/test --username test --groups test --append
 ```
 
-Update username during upsert (default is true)
+Avoid overwriting username by using --update-username=false
 
 ```
-aws-auth upsert  --maproles --rolearn arn:aws:iam::00000000000:role/test  --username test   --groups test
-```
-
-Do not update username during upsert
-
-```
-aws-auth upsert  --maproles --rolearn arn:aws:iam::00000000000:role/test  --username test   --groups test --update-username=false
+aws-auth upsert --maproles --rolearn arn:aws:iam::00000000000:role/test --username test2 --groups test --update-username=false
 ```
 
 ## Usage as a library
@@ -172,10 +159,9 @@ func someFunc(client kubernetes.Interface) error {
             "system:nodes",
         },
         WithRetries: true,
-        MinRetryTime:  time.Millisecond * 100,
-        MaxRetryTime:  time.Second * 30,
-        MaxRetryCount: 12,
-        UpdateUsername: true
+        MinRetryTime:   time.Millisecond * 100,
+        MaxRetryTime:   time.Second * 30,
+        MaxRetryCount:  12,
     }
 
     err = awsAuth.Upsert(myUpsertRole)

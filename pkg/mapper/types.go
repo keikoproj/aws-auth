@@ -77,22 +77,23 @@ const (
 
 // MapperArguments are the arguments for removing a mapRole or mapUsers
 type MapperArguments struct {
-	KubeconfigPath string
-	OperationType  OperationType
-	MapRoles       bool
-	MapUsers       bool
-	Force          bool
-	Username       string
-	RoleARN        string
-	UserARN        string
-	Groups         []string
-	WithRetries    bool
-	MinRetryTime   time.Duration
-	MaxRetryTime   time.Duration
-	MaxRetryCount  int
-	IsGlobal       bool
-	Append         bool
-	UpdateUsername bool
+	KubeconfigPath     string
+	OperationType      OperationType
+	MapRoles           bool
+	MapUsers           bool
+	Force              bool
+	Username           string
+	RoleARN            string
+	UserARN            string
+	Groups             []string
+	WithRetries        bool
+	MinRetryTime       time.Duration
+	MaxRetryTime       time.Duration
+	MaxRetryCount      int
+	IsGlobal           bool
+	Append             bool
+	UpdateUsername     string
+	UpdateUsernameBool bool
 }
 
 func (args *MapperArguments) Validate() {
@@ -123,6 +124,16 @@ func (args *MapperArguments) Validate() {
 			log.Fatal("error: must select --mapusers or --maproles")
 		}
 	}
+
+	switch update := args.UpdateUsername; update {
+	case "false":
+		args.UpdateUsernameBool = false
+	case "true":
+		args.UpdateUsernameBool = true
+	default:
+		args.UpdateUsernameBool = true
+	}
+
 }
 
 // RolesAuthMap is the basic structure of a mapRoles authentication object
