@@ -50,7 +50,7 @@ func New(client kubernetes.Interface, isCommandline bool) *AuthMapper {
 var (
 	DefaultRetryerBackoffFactor float64 = 2.0
 	DefaultRetryerBackoffJitter         = true
-	UpdateUsernameArgumentTrue  bool    = true
+	UpdateUsernameDefaultValue  bool    = true
 )
 
 // AwsAuthData represents the data of the aws-auth configmap
@@ -74,11 +74,13 @@ type OperationType string
 const (
 	OperationUpsert OperationType = "upsert"
 	OperationRemove OperationType = "remove"
+	OperationGet    OperationType = "get"
 )
 
 // MapperArguments are the arguments for removing a mapRole or mapUsers
 type MapperArguments struct {
 	KubeconfigPath string
+	Format         string
 	OperationType  OperationType
 	MapRoles       bool
 	MapUsers       bool
@@ -119,6 +121,10 @@ func (args *MapperArguments) Validate() {
 		log.Fatal("error: --username not provided")
 	}
 
+	if args.OperationType == OperationGet && args.Format != "table" {
+		log.Fatal("error: --format only supports value 'table'")
+	}
+
 	if !args.MapUsers && !args.MapRoles {
 		if !args.IsGlobal {
 			log.Fatal("error: must select --mapusers or --maproles")
@@ -126,7 +132,7 @@ func (args *MapperArguments) Validate() {
 	}
 
 	if args.UpdateUsername == nil {
-		args.UpdateUsername = &UpdateUsernameArgumentTrue
+		args.UpdateUsername = &UpdateUsernameDefaultValue
 	}
 
 }
@@ -221,11 +227,14 @@ func (r *RolesAuthMap) AppendGroups(g []string) *RolesAuthMap {
 	return r
 }
 
-func WithRetry(fn func(*MapperArguments) error, args *MapperArguments) error {
+type RetriableFunction func() (interface{}, error)
+
+func WithRetry(fn RetriableFunction, args *MapperArguments) (interface{}, error) {
 	// Update the config map and return an AuthMap
 	var (
 		counter int
 		err     error
+		out     interface{}
 		bkoff   = &backoff.Backoff{
 			Min:    args.MinRetryTime,
 			Max:    args.MaxRetryTime,
@@ -239,16 +248,16 @@ func WithRetry(fn func(*MapperArguments) error, args *MapperArguments) error {
 			break
 		}
 
-		if err = fn(args); err != nil {
+		if out, err = fn(); err != nil {
 			d := bkoff.Duration()
 			log.Printf("error: %v: will retry after %v", err, d)
 			time.Sleep(d)
 			counter++
 			continue
 		}
-		return nil
+		return out, nil
 	}
-	return errors.Wrap(err, "waiter timed out")
+	return out, errors.Wrap(err, "waiter timed out")
 }
 
 type UpsertOptions struct {

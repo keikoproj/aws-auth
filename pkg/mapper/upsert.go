@@ -25,7 +25,10 @@ func (b *AuthMapper) Upsert(args *MapperArguments) error {
 	args.Validate()
 
 	if args.WithRetries {
-		return WithRetry(b.upsertAuth, args)
+		_, err := WithRetry(func() (interface{}, error) {
+			return nil, b.upsertAuth(args)
+		}, args)
+		return err
 	}
 
 	return b.upsertAuth(args)

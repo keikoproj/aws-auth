@@ -27,7 +27,10 @@ func (b *AuthMapper) Remove(args *MapperArguments) error {
 	args.Validate()
 
 	if args.WithRetries {
-		return WithRetry(b.removeAuth, args)
+		_, err := WithRetry(func() (interface{}, error) {
+			return nil, b.removeAuth(args)
+		}, args)
+		return err
 	}
 	return b.removeAuth(args)
 }
@@ -37,7 +40,10 @@ func (b *AuthMapper) RemoveByUsername(args *MapperArguments) error {
 	args.IsGlobal = true
 	args.Validate()
 	if args.WithRetries {
-		return WithRetry(b.removeAuthByUser, args)
+		_, err := WithRetry(func() (interface{}, error) {
+			return nil, b.removeAuthByUser(args)
+		}, args)
+		return err
 	}
 	return b.removeAuthByUser(args)
 }

@@ -24,7 +24,8 @@ import (
 )
 
 var upsertArgs = &mapper.MapperArguments{
-	OperationType: mapper.OperationUpsert,
+	OperationType:  mapper.OperationUpsert,
+	UpdateUsername: &mapper.UpdateUsernameDefaultValue,
 }
 
 // upsertCmd represents the base command when called without any subcommands
