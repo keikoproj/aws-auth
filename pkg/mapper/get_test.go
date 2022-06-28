@@ -17,6 +17,7 @@ package mapper
 
 import (
 	"testing"
+	"time"
 
 	"github.com/onsi/gomega"
 	"k8s.io/client-go/kubernetes/fake"
@@ -48,6 +49,26 @@ func TestMapper_Get(t *testing.T) {
 	data, err := mapper.Get(&MapperArguments{})
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	g.Expect(data).NotTo(gomega.Equal(AwsAuthData{}))
+
+	auth, _, err := ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(auth).To(gomega.Equal(data))
+}
+
+func TestMapper_GetRetry(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+
+	data, err := mapper.Get(&MapperArguments{
+		WithRetries:   true,
+		MinRetryTime:  1 * time.Second,
+		MaxRetryTime:  2 * time.Second,
+		MaxRetryCount: 5,
+	})
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(data).To(gomega.Equal(AwsAuthData{}))
 
 	auth, _, err := ReadAuthMap(client)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
