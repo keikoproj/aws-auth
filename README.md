@@ -106,14 +106,14 @@ $ aws-auth remove-by-username --username ops-user
 Bootstrap a new node group role
 
 ```text
-$ aws-auth upsert --maproles --userarn arn:aws:iam::555555555555:role/my-new-node-group-NodeInstanceRole-74RF4UBDUKL6 --username system:node:{{EC2PrivateDNSName}} --groups system:bootstrappers system:nodes
+$ aws-auth upsert --maproles --rolearn arn:aws:iam::555555555555:role/my-new-node-group-NodeInstanceRole-74RF4UBDUKL6 --username system:node:{{EC2PrivateDNSName}} --groups system:bootstrappers system:nodes
 added arn:aws:iam::555555555555:role/my-new-node-group-NodeInstanceRole-74RF4UBDUKL6 to aws-auth
 ```
 
 You can also add retries with exponential backoff
 
 ```text
-$ aws-auth upsert --maproles --userarn arn:aws:iam::555555555555:role/my-new-node-group-NodeInstanceRole-74RF4UBDUKL6 --username system:node:{{EC2PrivateDNSName}} --groups system:bootstrappers system:nodes --retry
+$ aws-auth upsert --maproles --rolearn arn:aws:iam::555555555555:role/my-new-node-group-NodeInstanceRole-74RF4UBDUKL6 --username system:node:{{EC2PrivateDNSName}} --groups system:bootstrappers system:nodes --retry
 ```
 
 Retries are configurable using the following flags
@@ -128,13 +128,22 @@ Retries are configurable using the following flags
 Append groups to mapping instead of overwriting by using --append
 
 ```
-aws-auth upsert --maproles --rolearn arn:aws:iam::00000000000:role/test --username test --groups test --append
+$ aws-auth upsert --maproles --rolearn arn:aws:iam::00000000000:role/test --username test --groups test --append
 ```
 
 Avoid overwriting username by using --update-username=false
 
 ```
-aws-auth upsert --maproles --rolearn arn:aws:iam::00000000000:role/test --username test2 --groups test --update-username=false
+$ aws-auth upsert --maproles --rolearn arn:aws:iam::00000000000:role/test --username test2 --groups test --update-username=false
+```
+
+Use the `get` command to get a detailed view of mappings
+
+```
+$ aws-auth get
+
+TYPE        	ARN                                               USERNAME                         	GROUPS
+Role Mapping	arn:aws:iam::555555555555:role/my-new-node-group  system:node:{{EC2PrivateDNSName}}	system:bootstrappers, system:nodes
 ```
 
 ## Usage as a library

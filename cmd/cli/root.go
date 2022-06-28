@@ -41,32 +41,38 @@ func Execute() {
 	}
 }
 
-func getKubernetesClient(kubePath string) (kubernetes.Interface, error) {
+func getKubernetesConfig() (*rest.Config, error) {
 	var config *rest.Config
-
-        if _, inCluster := os.LookupEnv("KUBERNETES_SERVICE_HOST"); inCluster == true {
-		config, err := rest.InClusterConfig()
-		if err != nil {
-			return nil, err
-		}
-		client, err := kubernetes.NewForConfig(config)
-		if err != nil {
-			return nil, err
-		}
-		return client, nil
-	}
-
-	if kubePath == "" {
-		userHome, _ := os.UserHomeDir()
-		kubePath = fmt.Sprintf("%v/.kube/config", userHome)
-		if os.Getenv("KUBECONFIG") != "" {
-			kubePath = os.Getenv("KUBECONFIG")
-		}
-	}
-
-	config, err := clientcmd.BuildConfigFromFlags("", kubePath)
+	config, err := rest.InClusterConfig()
 	if err != nil {
-		return nil, err
+		return getKubernetesLocalConfig()
+	}
+	return config, nil
+}
+
+func getKubernetesLocalConfig() (*rest.Config, error) {
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	clientCfg := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, &clientcmd.ConfigOverrides{})
+	return clientCfg.ClientConfig()
+}
+
+func getKubernetesClient(kubePath string) (kubernetes.Interface, error) {
+	var (
+		config *rest.Config
+		err    error
+	)
+
+	// if kubeconfig path is not provided, try to auto detect
+	if kubePath == "" {
+		config, err = getKubernetesConfig()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		config, err = clientcmd.BuildConfigFromFlags("", kubePath)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	client, err := kubernetes.NewForConfig(config)

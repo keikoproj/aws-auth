@@ -62,8 +62,8 @@ func ReadAuthMap(k kubernetes.Interface) (AwsAuthData, *v1.ConfigMap, error) {
 func CreateAuthMap(k kubernetes.Interface) (*v1.ConfigMap, error) {
 	configMapObject := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "aws-auth",
-			Namespace: "kube-system",
+			Name:      AwsAuthName,
+			Namespace: AwsAuthNamespace,
 		},
 	}
 	configMap, err := k.CoreV1().ConfigMaps(AwsAuthNamespace).Create(context.Background(), configMapObject, metav1.CreateOptions{})
