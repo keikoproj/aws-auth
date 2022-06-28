@@ -50,6 +50,7 @@ func New(client kubernetes.Interface, isCommandline bool) *AuthMapper {
 var (
 	DefaultRetryerBackoffFactor float64 = 2.0
 	DefaultRetryerBackoffJitter         = true
+	UpdateUsernameArgumentTrue  bool    = true
 )
 
 // AwsAuthData represents the data of the aws-auth configmap
@@ -91,6 +92,8 @@ type MapperArguments struct {
 	MaxRetryTime   time.Duration
 	MaxRetryCount  int
 	IsGlobal       bool
+	Append         bool
+	UpdateUsername *bool
 }
 
 func (args *MapperArguments) Validate() {
@@ -121,6 +124,11 @@ func (args *MapperArguments) Validate() {
 			log.Fatal("error: must select --mapusers or --maproles")
 		}
 	}
+
+	if args.UpdateUsername == nil {
+		args.UpdateUsername = &UpdateUsernameArgumentTrue
+	}
+
 }
 
 // RolesAuthMap is the basic structure of a mapRoles authentication object
@@ -201,6 +209,18 @@ func (r *RolesAuthMap) SetGroups(g []string) *RolesAuthMap {
 	return r
 }
 
+// AppendGroups sets the Groups value
+func (r *UsersAuthMap) AppendGroups(g []string) *UsersAuthMap {
+	r.Groups = append(r.Groups, g...)
+	return r
+}
+
+// AppendGroups sets the Groups value
+func (r *RolesAuthMap) AppendGroups(g []string) *RolesAuthMap {
+	r.Groups = append(r.Groups, g...)
+	return r
+}
+
 func WithRetry(fn func(*MapperArguments) error, args *MapperArguments) error {
 	// Update the config map and return an AuthMap
 	var (
@@ -229,4 +249,9 @@ func WithRetry(fn func(*MapperArguments) error, args *MapperArguments) error {
 		return nil
 	}
 	return errors.Wrap(err, "waiter timed out")
+}
+
+type UpsertOptions struct {
+	Append         bool
+	UpdateUsername bool
 }

@@ -150,10 +150,15 @@ func (b *AuthMapper) upsertAuth(args *MapperArguments) error {
 		return err
 	}
 
+	opts := &UpsertOptions{
+		Append:         args.Append,
+		UpdateUsername: *args.UpdateUsername,
+	}
+
 	if args.MapRoles {
 		var roleResource = NewRolesAuthMap(args.RoleARN, args.Username, args.Groups)
 
-		newMap, ok := upsertRole(authData.MapRoles, roleResource)
+		newMap, ok := upsertRole(authData.MapRoles, roleResource, opts)
 		if ok {
 			log.Printf("role %v has been updated\n", roleResource.RoleARN)
 		} else {
@@ -165,7 +170,7 @@ func (b *AuthMapper) upsertAuth(args *MapperArguments) error {
 	if args.MapUsers {
 		var userResource = NewUsersAuthMap(args.UserARN, args.Username, args.Groups)
 
-		newMap, ok := upsertUser(authData.MapUsers, userResource)
+		newMap, ok := upsertUser(authData.MapUsers, userResource, opts)
 		if ok {
 			log.Printf("role %v has been updated\n", userResource.UserARN)
 		} else {
@@ -177,7 +182,7 @@ func (b *AuthMapper) upsertAuth(args *MapperArguments) error {
 	return UpdateAuthMap(b.KubernetesClient, authData, configMap)
 }
 
-func upsertRole(authMaps []*RolesAuthMap, resource *RolesAuthMap) ([]*RolesAuthMap, bool) {
+func upsertRole(authMaps []*RolesAuthMap, resource *RolesAuthMap, opts *UpsertOptions) ([]*RolesAuthMap, bool) {
 	var match bool
 	var updated bool
 	for _, existing := range authMaps {
@@ -185,12 +190,18 @@ func upsertRole(authMaps []*RolesAuthMap, resource *RolesAuthMap) ([]*RolesAuthM
 		if existing.RoleARN == resource.RoleARN {
 			match = true
 			if !reflect.DeepEqual(existing.Groups, resource.Groups) {
-				existing.SetGroups(resource.Groups)
+				if opts.Append {
+					existing.AppendGroups(resource.Groups)
+				} else {
+					existing.SetGroups(resource.Groups)
+				}
 				updated = true
 			}
 			if existing.Username != resource.Username {
-				existing.SetUsername(resource.Username)
-				updated = true
+				if opts.UpdateUsername {
+					existing.SetUsername(resource.Username)
+					updated = true
+				}
 			}
 		}
 	}
@@ -203,7 +214,7 @@ func upsertRole(authMaps []*RolesAuthMap, resource *RolesAuthMap) ([]*RolesAuthM
 	return authMaps, updated
 }
 
-func upsertUser(authMaps []*UsersAuthMap, resource *UsersAuthMap) ([]*UsersAuthMap, bool) {
+func upsertUser(authMaps []*UsersAuthMap, resource *UsersAuthMap, opts *UpsertOptions) ([]*UsersAuthMap, bool) {
 	var match bool
 	var updated bool
 	for _, existing := range authMaps {
@@ -211,12 +222,18 @@ func upsertUser(authMaps []*UsersAuthMap, resource *UsersAuthMap) ([]*UsersAuthM
 		if existing.UserARN == resource.UserARN {
 			match = true
 			if !reflect.DeepEqual(existing.Groups, resource.Groups) {
-				existing.SetGroups(resource.Groups)
+				if opts.Append {
+					existing.AppendGroups(resource.Groups)
+				} else {
+					existing.SetGroups(resource.Groups)
+				}
 				updated = true
 			}
 			if existing.Username != resource.Username {
-				existing.SetUsername(resource.Username)
-				updated = true
+				if opts.UpdateUsername {
+					existing.SetUsername(resource.Username)
+					updated = true
+				}
 			}
 		}
 	}

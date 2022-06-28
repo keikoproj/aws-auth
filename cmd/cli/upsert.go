@@ -58,4 +58,6 @@ func init() {
 	upsertCmd.Flags().DurationVar(&upsertArgs.MinRetryTime, "retry-min-time", time.Millisecond*200, "Minimum wait interval")
 	upsertCmd.Flags().DurationVar(&upsertArgs.MaxRetryTime, "retry-max-time", time.Second*30, "Maximum wait interval")
 	upsertCmd.Flags().IntVar(&upsertArgs.MaxRetryCount, "retry-max-count", 12, "Maximum number of retries before giving up")
+	upsertCmd.Flags().BoolVar(&upsertArgs.Append, "append", false, "append to a existing group list")
+	upsertCmd.Flags().BoolVar(upsertArgs.UpdateUsername, "update-username", true, "set to false to not overwite username")
 }
