@@ -48,6 +48,21 @@ func create_MockConfigMap(client kubernetes.Interface) {
 	}
 	_, err := client.CoreV1().ConfigMaps(AwsAuthNamespace).Create(context.Background(), configMap, metav1.CreateOptions{})
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
+}
+
+func create_MockMalformedConfigMap(client kubernetes.Interface) {
+	configMap := &v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      AwsAuthName,
+			Namespace: AwsAuthNamespace,
+		},
+		Data: map[string]string{
+			"mapRoles": "''",
+			"mapUsers": "''",
+		},
+	}
+	_, err := client.CoreV1().ConfigMaps(AwsAuthNamespace).Create(context.Background(), configMap, metav1.CreateOptions{})
+	gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
 }
 

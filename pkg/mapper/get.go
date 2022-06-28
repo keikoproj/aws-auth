@@ -40,5 +40,6 @@ func (b *AuthMapper) getAuth() (AwsAuthData, error) {
 	if err != nil {
 		return AwsAuthData{}, err
 	}
+
 	return authData, nil
 }

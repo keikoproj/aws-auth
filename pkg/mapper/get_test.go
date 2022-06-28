@@ -74,3 +74,27 @@ func TestMapper_GetRetry(t *testing.T) {
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	g.Expect(auth).To(gomega.Equal(data))
 }
+
+func TestMapper_GetRetryFail(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+	create_MockMalformedConfigMap(client)
+
+	data, err := mapper.Get(&MapperArguments{
+		WithRetries:   true,
+		MinRetryTime:  100 * time.Millisecond,
+		MaxRetryTime:  200 * time.Millisecond,
+		MaxRetryCount: 5,
+	})
+
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("waiter timed out"))
+	g.Expect(data).To(gomega.Equal(AwsAuthData{}))
+
+	_, _, err = ReadAuthMap(client)
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("cannot unmarshal"))
+
+}
