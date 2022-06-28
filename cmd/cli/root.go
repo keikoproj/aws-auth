@@ -42,29 +42,38 @@ func Execute() {
 }
 
 func getKubernetesClient(kubePath string) (kubernetes.Interface, error) {
-	var config *rest.Config
+	var (
+		config         *rest.Config
+		kubeconfigPath string
+	)
 
-        if _, inCluster := os.LookupEnv("KUBERNETES_SERVICE_HOST"); inCluster == true {
-		config, err := rest.InClusterConfig()
-		if err != nil {
-			return nil, err
-		}
-		client, err := kubernetes.NewForConfig(config)
-		if err != nil {
-			return nil, err
-		}
-		return client, nil
-	}
-
+	// if kubeconfig path is not provided, try to auto detect
 	if kubePath == "" {
-		userHome, _ := os.UserHomeDir()
-		kubePath = fmt.Sprintf("%v/.kube/config", userHome)
-		if os.Getenv("KUBECONFIG") != "" {
-			kubePath = os.Getenv("KUBECONFIG")
+
+		// first check if we are running in-cluster
+		if _, inCluster := os.LookupEnv("KUBERNETES_SERVICE_HOST"); inCluster {
+			config, err := rest.InClusterConfig()
+			if err != nil {
+				return nil, err
+			}
+			client, err := kubernetes.NewForConfig(config)
+			if err != nil {
+				return nil, err
+			}
+			return client, nil
+		} else {
+			// otherwise try using default kubeconfig
+			userHome, _ := os.UserHomeDir()
+			kubeconfigPath = fmt.Sprintf("%v/.kube/config", userHome)
+			if os.Getenv("KUBECONFIG") != "" {
+				kubeconfigPath = os.Getenv("KUBECONFIG")
+			}
 		}
+	} else {
+		kubeconfigPath = kubePath
 	}
 
-	config, err := clientcmd.BuildConfigFromFlags("", kubePath)
+	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 	if err != nil {
 		return nil, err
 	}
