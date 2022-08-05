@@ -19,8 +19,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/keikoproj/aws-auth/pkg/mapper"
 	"github.com/spf13/cobra"
+
+	"github.com/keikoproj/aws-auth/pkg/mapper"
 )
 
 var removeArgs = &mapper.MapperArguments{
@@ -39,7 +40,7 @@ var removeCmd = &cobra.Command{
 		}
 
 		worker := mapper.New(k, true)
-		if err := worker.RemoveByUsername(removeArgs); err != nil {
+		if err := worker.Remove(removeArgs); err != nil {
 			log.Fatal(err)
 		}
 	},
