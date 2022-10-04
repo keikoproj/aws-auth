@@ -34,7 +34,12 @@ var upsertCmd = &cobra.Command{
 	Short: "upsert updates or inserts a user or role to the aws-auth configmap",
 	Long:  `upsert updates or inserts a user or role to the aws-auth configmap`,
 	Run: func(cmd *cobra.Command, args []string) {
-		k, err := getKubernetesClient(upsertArgs.KubeconfigPath)
+		options := kubeOptions{
+			AsUser:   upsertArgs.AsUser,
+			AsGroups: upsertArgs.AsGroups,
+		}
+
+		k, err := getKubernetesClient(getArgs.KubeconfigPath, options)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -61,4 +66,6 @@ func init() {
 	upsertCmd.Flags().IntVar(&upsertArgs.MaxRetryCount, "retry-max-count", 12, "Maximum number of retries before giving up")
 	upsertCmd.Flags().BoolVar(&upsertArgs.Append, "append", false, "append to a existing group list")
 	upsertCmd.Flags().BoolVar(upsertArgs.UpdateUsername, "update-username", true, "set to false to not overwite username")
+	upsertCmd.Flags().StringVar(&upsertArgs.AsUser, "as", "", "Username to impersonate for the operation")
+	upsertCmd.Flags().StringSliceVar(&upsertArgs.AsGroups, "as-group", []string{}, "Group to impersonate for the operation, this flag can be repeated to specify multiple groups")
 }

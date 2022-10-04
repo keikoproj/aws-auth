@@ -25,6 +25,11 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+type kubeOptions struct {
+	AsUser   string
+	AsGroups []string
+}
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "aws-auth",
@@ -56,7 +61,7 @@ func getKubernetesLocalConfig() (*rest.Config, error) {
 	return clientCfg.ClientConfig()
 }
 
-func getKubernetesClient(kubePath string) (kubernetes.Interface, error) {
+func getKubernetesClient(kubePath string, options kubeOptions) (kubernetes.Interface, error) {
 	var (
 		config *rest.Config
 		err    error
@@ -74,6 +79,9 @@ func getKubernetesClient(kubePath string) (kubernetes.Interface, error) {
 			return nil, err
 		}
 	}
+
+	config.Impersonate.UserName = options.AsUser
+	config.Impersonate.Groups = options.AsGroups
 
 	client, err := kubernetes.NewForConfig(config)
 	if err != nil {

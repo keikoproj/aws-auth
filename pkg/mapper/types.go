@@ -96,6 +96,9 @@ type MapperArguments struct {
 	IsGlobal       bool
 	Append         bool
 	UpdateUsername *bool
+
+	AsUser   string
+	AsGroups []string
 }
 
 func (args *MapperArguments) Validate() {
