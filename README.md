@@ -146,6 +146,11 @@ TYPE        	ARN                                               USERNAME         
 Role Mapping	arn:aws:iam::555555555555:role/my-new-node-group  system:node:{{EC2PrivateDNSName}}	system:bootstrappers, system:nodes
 ```
 
+use impersonate
+```
+aws-auth get|update|remove --as <username> --as-group <groupname> 
+```
+
 ## Usage as a library
 
 ```go
