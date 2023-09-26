@@ -30,7 +30,7 @@ const (
 	AwsAuthName      = "aws-auth"
 )
 
-// ReadAuthMap reads the aws-auth config map and returns an AwsAuthData and the actualy ConfigMap objects
+// ReadAuthMap reads the aws-auth config map and returns an AwsAuthData and the actually ConfigMap objects
 func ReadAuthMap(k kubernetes.Interface) (AwsAuthData, *v1.ConfigMap, error) {
 	var authData AwsAuthData
 
