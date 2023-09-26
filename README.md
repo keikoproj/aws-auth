@@ -2,6 +2,7 @@
 # aws-auth
 [![unit-test](https://github.com/keikoproj/aws-auth/actions/workflows/unit-test.yaml/badge.svg?branch=master)](https://github.com/keikoproj/aws-auth/actions/workflows/unit-test.yaml)
 [![codecov](https://codecov.io/gh/keikoproj/aws-auth/branch/master/graph/badge.svg)](https://codecov.io/gh/keikoproj/aws-auth)
+[![Go Report Card](https://goreportcard.com/badge/github.com/keikoproj/aws-auth)](https://goreportcard.com/report/github.com/keikoproj/aws-auth)
 
 
 > Makes the management of the aws-auth config map for EKS Kubernetes clusters easier
