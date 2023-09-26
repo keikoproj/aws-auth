@@ -1,6 +1,6 @@
 
 # aws-auth
-[![Build Status](https://travis-ci.org/keikoproj/aws-auth.svg?branch=master)](https://travis-ci.org/keikoproj/aws-auth)
+[![unit-test](https://github.com/keikoproj/aws-auth/actions/workflows/unit-test.yaml/badge.svg?branch=master)](https://github.com/keikoproj/aws-auth/actions/workflows/unit-test.yaml)
 [![codecov](https://codecov.io/gh/keikoproj/aws-auth/branch/master/graph/badge.svg)](https://codecov.io/gh/keikoproj/aws-auth)
 
 
