@@ -5,7 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/keikoproj/aws-auth)](https://goreportcard.com/report/github.com/keikoproj/aws-auth)
 
 
-> Makes the management of the aws-auth config map for EKS Kubernetes clusters easier
+The `aws-auth` utility and library makes the management of the `aws-auth` ConfigMap for EKS Kubernetes clusters easier and safer.
 
 ## Use cases
 
@@ -15,10 +15,41 @@
 
 - run as part of a workflow on kubernetes using a docker image
 
+The `aws-auth` tool is referenced in the AWS EKS best practices documentation [here](https://aws.github.io/aws-eks-best-practices/security/docs/iam/#use-tools-to-make-changes-to-the-aws-auth-configmap).
+
 ## Install
 
+`aws-auth` includes both a CLI and a [go library](#usage-as-a-library). You can install the CLI via `go get` or as a kubectl plugin via [Krew](https://krew.sigs.k8s.io/) or by downloading a binary from the [releases page](https://github.com/keikoproj/aws-auth/releases).
+
+### go get
+
 ```text
-$ go get github.com/keikoproj/aws-auth
+go get github.com/keikoproj/aws-auth
+aws-auth help
+```
+
+### kubectl krew
+
+Alternatively, install aws-auth with the krew plugin manager for kubectl.
+
+```
+kubectl krew install aws-auth
+kubectl aws-auth
+```
+
+### Download release artifact
+
+The latest release artifacts can be downloaded from the [GitHub releases page](https://github.com/keikoproj/aws-auth/releases/latest).
+
+Or you can use the following command to download the latest release artifact for your platform:
+
+``` bash
+curl -s https://api.github.com/repos/keikoproj/aws-auth/releases/latest
+| grep "browser_download_url" \
+| grep $(go env GOARCH) | grep $(go env GOOS) \
+| cut -d : -f 2,3 \
+| tr -d \" \
+| wget -qi -
 ```
 
 ## Usage from command line or Krew
