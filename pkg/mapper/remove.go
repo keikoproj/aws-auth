@@ -80,7 +80,7 @@ func (b *AuthMapper) removeAuthByUser(args *MapperArguments) error {
 
 	if !removed {
 		msg := fmt.Sprintf("failed to remove based on username %v, found zero matches\n", args.Username)
-		log.Printf(msg)
+		log.Print(msg)
 		if args.Force {
 			return nil
 		}
