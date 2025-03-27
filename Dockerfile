@@ -2,10 +2,15 @@ FROM golang:1.24-alpine as build
 
 RUN apk add --update --no-cache \
     curl \
-    py-pip \
     build-base \
     git \
-  && pip install awscli
+    python3 \
+    py3-pip
+# Install AWS CLI using Alpine package manager or setup a virtual environment
+RUN python3 -m venv /tmp/venv && \
+    . /tmp/venv/bin/activate && \
+    pip install awscli && \
+    cp -r /tmp/venv/bin/aws* /usr/local/bin/
 
 WORKDIR /go/src/github.com/keikoproj/aws-auth
 COPY . .
