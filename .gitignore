@@ -1,5 +1,6 @@
 bin/*
 coverage.txt
 coverage.html
+results.json
 dist/
 .windsurfrules

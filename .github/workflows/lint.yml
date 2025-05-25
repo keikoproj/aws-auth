@@ -57,10 +57,28 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         
-      - name: List security issues
+      # Fail only on high severity issues
+      - name: Run gosec security scan
         uses: securego/gosec@master
         with:
-          args: -exclude-generated ./...
+          args: -exclude-generated -fmt=json -out=results.json ./...
+          
+      - name: Check for high severity issues
+        run: |
+          if [ ! -f results.json ]; then
+            echo "Error: gosec scan results not found"
+            exit 1
+          fi
+          
+          # Check if any high severity issues exist (level 3)
+          HIGH_ISSUES=$(cat results.json | grep -c '"severity":"HIGH"' || true)
+          if [ "$HIGH_ISSUES" -gt 0 ]; then
+            echo "Found $HIGH_ISSUES high severity security issues!"
+            cat results.json | grep -A 5 -B 5 '"severity":"HIGH"'
+            exit 1
+          else
+            echo "No high severity security issues found."
+          fi
 
   license-check:
     name: License Compliance
