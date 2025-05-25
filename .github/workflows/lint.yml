@@ -79,6 +79,15 @@ jobs:
           else
             echo "No high severity security issues found."
           fi
+          
+      - name: Upload security scan results
+        if: always()  # Run even if previous steps failed
+        uses: actions/upload-artifact@v4
+        with:
+          name: gosec-results
+          path: results.json
+          retention-days: 7
+          if-no-files-found: warn
 
   license-check:
     name: License Compliance
