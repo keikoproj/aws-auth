@@ -77,7 +77,16 @@ jobs:
       - name: Check License Headers
         run: |
           # Only check Go files that aren't in vendor or generated
-          # Exit with success for now to avoid blocking the PR
           echo "Checking for Apache License headers in Go files..."
-          find . -name "*.go" -type f -not -path "*/vendor/*" -not -path "*/mocks/*" | xargs grep -L "Licensed under the Apache License"
-          echo "License check completed"
+          # Store files missing license in a variable
+          MISSING_LICENSE=$(find . -name "*.go" -type f -not -path "*/vendor/*" -not -path "*/mocks/*" | xargs grep -L "Licensed under the Apache License" || true)
+          
+          # If any files are missing license headers, report and exit with error
+          if [ -n "$MISSING_LICENSE" ]; then
+            echo "ERROR: The following files are missing Apache License headers:"
+            echo "$MISSING_LICENSE"
+            echo "License check failed. Please add the appropriate license headers."
+            exit 1
+          else
+            echo "License check passed. All files have proper license headers."
+          fi
