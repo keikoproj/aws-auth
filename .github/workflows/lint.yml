@@ -44,20 +44,15 @@ jobs:
         run: |
           go vet ./...
 
-      # Run golangci-lint but allow it to fail - document issues for future PR
-      - name: Run golangci-lint (Non-blocking)
+      - name: Run golangci-lint
         id: lint
-        continue-on-error: true
         uses: golangci/golangci-lint-action@v7
         with:
           version: latest
-          args: --timeout=5m --issues-exit-code=0
           
   gosec-issues:
     name: Security Scan Issues
     runs-on: ubuntu-latest
-    # This job will run but we'll mark it as non-blocking (allow failure)
-    continue-on-error: true
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -84,5 +79,5 @@ jobs:
           # Only check Go files that aren't in vendor or generated
           # Exit with success for now to avoid blocking the PR
           echo "Checking for Apache License headers in Go files..."
-          find . -name "*.go" -type f -not -path "*/vendor/*" -not -path "*/mocks/*" | xargs grep -L "Licensed under the Apache License" || true
-          echo "License check completed (non-blocking)"
+          find . -name "*.go" -type f -not -path "*/vendor/*" -not -path "*/mocks/*" | xargs grep -L "Licensed under the Apache License"
+          echo "License check completed"
