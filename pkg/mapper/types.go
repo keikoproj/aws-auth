@@ -17,7 +17,7 @@ package mapper
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"strings"
 	"time"
@@ -42,7 +42,7 @@ func New(client kubernetes.Interface, isCommandline bool) *AuthMapper {
 	mapper.KubernetesClient = client
 
 	if !isCommandline {
-		log.SetOutput(ioutil.Discard)
+		log.SetOutput(io.Discard)
 	}
 	return mapper
 }
@@ -246,10 +246,7 @@ func WithRetry(fn RetriableFunction, args *MapperArguments) (interface{}, error)
 		}
 	)
 
-	for {
-		if counter >= args.MaxRetryCount {
-			break
-		}
+	for counter < args.MaxRetryCount {
 
 		if out, err = fn(); err != nil {
 			d := bkoff.Duration()

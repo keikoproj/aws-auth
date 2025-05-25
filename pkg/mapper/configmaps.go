@@ -91,7 +91,7 @@ func UpdateAuthMap(k kubernetes.Interface, authData AwsAuthData, cm *v1.ConfigMa
 		"mapUsers": string(mapUsers),
 	}
 
-	cm, err = k.CoreV1().ConfigMaps(AwsAuthNamespace).Update(context.Background(), cm, metav1.UpdateOptions{})
+	_, err = k.CoreV1().ConfigMaps(AwsAuthNamespace).Update(context.Background(), cm, metav1.UpdateOptions{})
 	if err != nil {
 		return err
 	}
