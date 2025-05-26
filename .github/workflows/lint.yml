@@ -1,0 +1,119 @@
+name: Lint and Scan
+
+on:
+  # Only run on PRs targeting master
+  pull_request:
+    branches: [ master ]
+    types: [opened, synchronize, reopened]
+  # For direct pushes to master only
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/**'
+      - '!.github/workflows/lint.yml'
+
+# Prevent duplicate workflow runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  golangci:
+    name: Go Linting
+    runs-on: ubuntu-latest
+    # Allow job to succeed even with lint issues for now
+    continue-on-error: true
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.24.x
+          cache: true
+
+      # Simple linting first using standard go tools
+      - name: Run go fmt
+        run: |
+          go fmt ./...
+      
+      - name: Run go vet
+        run: |
+          go vet ./...
+
+      - name: Run golangci-lint
+        id: lint
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: latest
+          
+  gosec-issues:
+    name: Security Scan Issues
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        
+      # Fail only on high severity issues
+      - name: Run gosec security scan
+        uses: securego/gosec@master
+        with:
+          args: -exclude-generated -fmt=json -out=results.json ./...
+          
+      - name: Check for high severity issues
+        run: |
+          if [ ! -f results.json ]; then
+            echo "Error: gosec scan results not found"
+            exit 1
+          fi
+          
+          # Check if any high severity issues exist (level 3)
+          HIGH_ISSUES=$(cat results.json | grep -c '"severity":"HIGH"' || true)
+          if [ "$HIGH_ISSUES" -gt 0 ]; then
+            echo "Found $HIGH_ISSUES high severity security issues!"
+            cat results.json | grep -A 5 -B 5 '"severity":"HIGH"'
+            exit 1
+          else
+            echo "No high severity security issues found."
+          fi
+          
+      - name: Upload security scan results
+        if: always()  # Run even if previous steps failed
+        uses: actions/upload-artifact@v4
+        with:
+          name: gosec-results
+          path: results.json
+          retention-days: 7
+          if-no-files-found: warn
+
+  license-check:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.24.x
+          
+      - name: Check License Headers
+        run: |
+          # Only check Go files that aren't in vendor or generated
+          echo "Checking for Apache License headers in Go files..."
+          # Store files missing license in a variable
+          MISSING_LICENSE=$(find . -name "*.go" -type f -not -path "*/vendor/*" -not -path "*/mocks/*" | xargs grep -L "Licensed under the Apache License" || true)
+          
+          # If any files are missing license headers, report and exit with error
+          if [ -n "$MISSING_LICENSE" ]; then
+            echo "ERROR: The following files are missing Apache License headers:"
+            echo "$MISSING_LICENSE"
+            echo "License check failed. Please add the appropriate license headers."
+            exit 1
+          else
+            echo "License check passed. All files have proper license headers."
+          fi

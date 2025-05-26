@@ -88,7 +88,7 @@ func TestConfigMaps_Update(t *testing.T) {
 	err = UpdateAuthMap(client, auth, cm)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
-	auth, cm, err = ReadAuthMap(client)
+	auth, _, err = ReadAuthMap(client)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	fmt.Println(auth.MapRoles[0])
