@@ -447,6 +447,40 @@ func TestMapper_UpsertUpdateAppendGroups(t *testing.T) {
 	g.Expect(auth.MapUsers[0].Groups).To(gomega.Equal([]string{"system:masters", "appendedGroup"}))
 }
 
+func TestMapper_UpsertMultiple_EmptySlices(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+	create_MockConfigMap(client)
+
+	// Passing empty slices should be a no-op — configmap must not be changed
+	err := mapper.UpsertMultiple([]*RolesAuthMap{}, []*UsersAuthMap{})
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	auth, _, err := ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(len(auth.MapRoles)).To(gomega.Equal(1))
+	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
+}
+
+func TestMapper_UpsertMultiple_NilInputs(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+	create_MockConfigMap(client)
+
+	// Passing nil slices should be equivalent to empty — no crash, no change
+	err := mapper.UpsertMultiple(nil, nil)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+
+	auth, _, err := ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(len(auth.MapRoles)).To(gomega.Equal(1))
+	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
+}
+
 func TestMapper_UpdateUsername(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)

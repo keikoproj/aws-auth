@@ -230,6 +230,50 @@ func TestMapper_RemoveByUsernameNotFoundForce(t *testing.T) {
 	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
 }
 
+func TestMapper_RemoveRole_PartialMatchARNOnly(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+	create_MockConfigMap(client)
+
+	// The ARN exists but with a different username — should fail to remove (no exact match)
+	err := mapper.Remove(&MapperArguments{
+		MapRoles: true,
+		RoleARN:  "arn:aws:iam::00000000000:role/node-1",
+		Username: "wrong-username",
+		Groups:   []string{"system:bootstrappers", "system:nodes"},
+	})
+	g.Expect(err).To(gomega.HaveOccurred())
+
+	// Configmap should be unchanged
+	auth, _, err := ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(len(auth.MapRoles)).To(gomega.Equal(1))
+}
+
+func TestMapper_RemoveUser_PartialMatchARNOnly(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+	create_MockConfigMap(client)
+
+	// The ARN exists but with a different username — should fail to remove (no exact match)
+	err := mapper.Remove(&MapperArguments{
+		MapUsers: true,
+		UserARN:  "arn:aws:iam::00000000000:user/user-1",
+		Username: "wrong-username",
+		Groups:   []string{"system:masters"},
+	})
+	g.Expect(err).To(gomega.HaveOccurred())
+
+	// Configmap should be unchanged
+	auth, _, err := ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
+}
+
 func TestMapper_RemoveWithRetries(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)
