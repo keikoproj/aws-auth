@@ -38,7 +38,7 @@ LOCALBIN = $(shell pwd)/bin
 $(LOCALBIN):
 	mkdir -p $(LOCALBIN)
 
-GOLANGCI_LINT_VERSION := v2.1.1
+GOLANGCI_LINT_VERSION := v2.11.4
 GOLANGCI_LINT = $(shell pwd)/bin/golangci-lint
 .PHONY: golangci-lint
 $(GOLANGCI_LINT): $(LOCALBIN)
