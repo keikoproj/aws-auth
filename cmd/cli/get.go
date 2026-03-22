@@ -22,6 +22,8 @@ import (
 
 	"github.com/keikoproj/aws-auth/pkg/mapper"
 	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/renderer"
+	"github.com/olekukonko/tablewriter/tw"
 	"github.com/spf13/cobra"
 )
 
@@ -53,31 +55,51 @@ var getCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Type", "ARN", "Username", "Groups"})
-		table.SetAutoWrapText(false)
-		table.SetAutoFormatHeaders(true)
-		table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-		table.SetAlignment(tablewriter.ALIGN_LEFT)
-		table.SetCenterSeparator("")
-		table.SetColumnSeparator("")
-		table.SetRowSeparator("")
-		table.SetHeaderLine(false)
-		table.SetBorder(false)
-		table.SetTablePadding("\t")
-		table.SetNoWhiteSpace(true)
-		data := make([][]string, 0)
+		table := tablewriter.NewTable(os.Stdout,
+			tablewriter.WithRenderer(renderer.NewBlueprint(tw.Rendition{
+				Borders: tw.Border{
+					Left:   tw.Off,
+					Right:  tw.Off,
+					Top:    tw.Off,
+					Bottom: tw.Off,
+				},
+				Settings: tw.Settings{
+					Lines: tw.Lines{
+						ShowTop:        tw.Off,
+						ShowBottom:     tw.Off,
+						ShowHeaderLine: tw.Off,
+					},
+					Separators: tw.Separators{
+						BetweenColumns: tw.Off,
+						BetweenRows:    tw.Off,
+					},
+				},
+			})),
+		)
+		table.Configure(func(cfg *tablewriter.Config) {
+			cfg.Header.Alignment.Global = tw.AlignLeft
+			cfg.Header.Formatting.AutoFormat = tw.Off
+			cfg.Row.Alignment.Global = tw.AlignLeft
+			cfg.Header.Padding.Global = tw.Padding{Left: "\t", Right: "", Overwrite: true}
+			cfg.Row.Padding.Global = tw.Padding{Left: "\t", Right: "", Overwrite: true}
+		})
+		table.Header([]string{"Type", "ARN", "Username", "Groups"})
 
 		for _, row := range d.MapRoles {
-			data = append(data, []string{"Role Mapping", row.RoleARN, row.Username, strings.Join(row.Groups, ", ")})
+			if err := table.Append([]string{"Role Mapping", row.RoleARN, row.Username, strings.Join(row.Groups, ", ")}); err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		for _, row := range d.MapUsers {
-			data = append(data, []string{"User Mapping", row.UserARN, row.Username, strings.Join(row.Groups, ", ")})
+			if err := table.Append([]string{"User Mapping", row.UserARN, row.Username, strings.Join(row.Groups, ", ")}); err != nil {
+				log.Fatal(err)
+			}
 		}
 
-		table.AppendBulk(data)
-		table.Render()
+		if err := table.Render(); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
