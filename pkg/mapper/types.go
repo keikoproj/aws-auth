@@ -149,11 +149,11 @@ type RolesAuthMap struct {
 
 func (r *RolesAuthMap) String() string {
 	var s strings.Builder
-	s.WriteString(fmt.Sprintf("- rolearn: %v\n  ", r.RoleARN))
-	s.WriteString(fmt.Sprintf("username: %v\n  ", r.Username))
+	fmt.Fprintf(&s, "- rolearn: %v\n  ", r.RoleARN)
+	fmt.Fprintf(&s, "username: %v\n  ", r.Username)
 	s.WriteString("groups:\n")
 	for _, group := range r.Groups {
-		s.WriteString(fmt.Sprintf("  - %v\n", group))
+		fmt.Fprintf(&s, "  - %v\n", group)
 	}
 	return s.String()
 }
@@ -167,11 +167,11 @@ type UsersAuthMap struct {
 
 func (r *UsersAuthMap) String() string {
 	var s strings.Builder
-	s.WriteString(fmt.Sprintf("- userarn: %v\n  ", r.UserARN))
-	s.WriteString(fmt.Sprintf("username: %v\n  ", r.Username))
+	fmt.Fprintf(&s, "- userarn: %v\n  ", r.UserARN)
+	fmt.Fprintf(&s, "username: %v\n  ", r.Username)
 	s.WriteString("groups:\n")
 	for _, group := range r.Groups {
-		s.WriteString(fmt.Sprintf("  - %v\n", group))
+		fmt.Fprintf(&s, "  - %v\n", group)
 	}
 	return s.String()
 }
