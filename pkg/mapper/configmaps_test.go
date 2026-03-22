@@ -125,3 +125,15 @@ func TestConfigMaps_Create(t *testing.T) {
 	g.Expect(len(auth.MapRoles)).To(gomega.Equal(0))
 	g.Expect(len(auth.MapUsers)).To(gomega.Equal(0))
 }
+
+func TestCreateAuthMap_AlreadyExists(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	// Create the configmap once — should succeed
+	_, err := CreateAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	// Attempt to create it again — the fake client returns an "already exists" error
+	_, err = CreateAuthMap(client)
+	g.Expect(err).To(gomega.HaveOccurred())
+}
