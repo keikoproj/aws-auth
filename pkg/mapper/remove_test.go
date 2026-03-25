@@ -274,6 +274,80 @@ func TestMapper_RemoveUser_PartialMatchARNOnly(t *testing.T) {
 	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
 }
 
+func TestMapper_RemoveRole_GroupsMismatchNotOverriddenByUsername(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+	create_MockConfigMap(client)
+
+	// ARN and username match, but groups do NOT match — should fail to remove
+	err := mapper.Remove(&MapperArguments{
+		MapRoles: true,
+		RoleARN:  "arn:aws:iam::00000000000:role/node-1",
+		Username: "system:node:{{EC2PrivateDNSName}}",
+		Groups:   []string{"wrong-group"},
+	})
+	g.Expect(err).To(gomega.HaveOccurred())
+
+	// Configmap should be unchanged
+	auth, _, err := ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(len(auth.MapRoles)).To(gomega.Equal(1))
+}
+
+func TestMapper_RemoveUser_GroupsMismatchNotOverriddenByUsername(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+	create_MockConfigMap(client)
+
+	// ARN and username match, but groups do NOT match — should fail to remove
+	err := mapper.Remove(&MapperArguments{
+		MapUsers: true,
+		UserARN:  "arn:aws:iam::00000000000:user/user-1",
+		Username: "admin",
+		Groups:   []string{"wrong-group"},
+	})
+	g.Expect(err).To(gomega.HaveOccurred())
+
+	// Configmap should be unchanged
+	auth, _, err := ReadAuthMap(client)
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(len(auth.MapUsers)).To(gomega.Equal(1))
+}
+
+func TestMapper_RemoveRole_NotFound_ErrorMessage(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+	create_MockConfigMap(client)
+
+	err := mapper.Remove(&MapperArguments{
+		MapRoles: true,
+		RoleARN:  "arn:aws:iam::00000000000:role/nonexistent",
+	})
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("rolemap"))
+}
+
+func TestMapper_RemoveUser_NotFound_ErrorMessage(t *testing.T) {
+	g := gomega.NewWithT(t)
+	gomega.RegisterTestingT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+	create_MockConfigMap(client)
+
+	err := mapper.Remove(&MapperArguments{
+		MapUsers: true,
+		UserARN:  "arn:aws:iam::00000000000:user/nonexistent",
+	})
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("usermap"))
+}
+
 func TestMapper_RemoveWithRetries(t *testing.T) {
 	g := gomega.NewWithT(t)
 	gomega.RegisterTestingT(t)

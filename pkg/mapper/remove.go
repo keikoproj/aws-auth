@@ -124,7 +124,7 @@ func (b *AuthMapper) removeAuth(args *MapperArguments) error {
 			if args.Force {
 				return nil
 			}
-			return errors.New("could not find rolemap")
+			return errors.New("could not find usermap")
 		}
 		log.Printf("removed %v from aws-auth\n", usersResource.UserARN)
 		authData.SetMapUsers(newMap)
@@ -142,19 +142,11 @@ func removeRole(authMaps []*RolesAuthMap, targetMap *RolesAuthMap) ([]*RolesAuth
 		match = false
 		if existingMap.RoleARN == targetMap.RoleARN {
 			match = true
-			if len(targetMap.Groups) != 0 {
-				if reflect.DeepEqual(existingMap.Groups, targetMap.Groups) {
-					match = true
-				} else {
-					match = false
-				}
+			if len(targetMap.Groups) != 0 && !reflect.DeepEqual(existingMap.Groups, targetMap.Groups) {
+				match = false
 			}
-			if targetMap.Username != "" {
-				if existingMap.Username == targetMap.Username {
-					match = true
-				} else {
-					match = false
-				}
+			if match && targetMap.Username != "" && existingMap.Username != targetMap.Username {
+				match = false
 			}
 		}
 		if match {
@@ -175,19 +167,11 @@ func removeUser(authMaps []*UsersAuthMap, targetMap *UsersAuthMap) ([]*UsersAuth
 		match = false
 		if existingMap.UserARN == targetMap.UserARN {
 			match = true
-			if len(targetMap.Groups) != 0 {
-				if reflect.DeepEqual(existingMap.Groups, targetMap.Groups) {
-					match = true
-				} else {
-					match = false
-				}
+			if len(targetMap.Groups) != 0 && !reflect.DeepEqual(existingMap.Groups, targetMap.Groups) {
+				match = false
 			}
-			if targetMap.Username != "" {
-				if existingMap.Username == targetMap.Username {
-					match = true
-				} else {
-					match = false
-				}
+			if match && targetMap.Username != "" && existingMap.Username != targetMap.Username {
+				match = false
 			}
 		}
 		if match {
