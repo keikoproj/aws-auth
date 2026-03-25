@@ -39,7 +39,7 @@ var upsertCmd = &cobra.Command{
 			AsGroups: upsertArgs.AsGroups,
 		}
 
-		k, err := getKubernetesClient(getArgs.KubeconfigPath, options)
+		k, err := getKubernetesClient(upsertArgs.KubeconfigPath, options)
 		if err != nil {
 			log.Fatal(err)
 		}

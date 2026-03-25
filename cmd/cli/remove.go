@@ -35,11 +35,11 @@ var removeCmd = &cobra.Command{
 	Long:  `remove removes a user or role from the aws-auth configmap`,
 	Run: func(cmd *cobra.Command, args []string) {
 		options := kubeOptions{
-			AsUser:   upsertArgs.AsUser,
-			AsGroups: upsertArgs.AsGroups,
+			AsUser:   removeArgs.AsUser,
+			AsGroups: removeArgs.AsGroups,
 		}
 
-		k, err := getKubernetesClient(getArgs.KubeconfigPath, options)
+		k, err := getKubernetesClient(removeArgs.KubeconfigPath, options)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -59,11 +59,11 @@ func removeByUsernameCmd() *cobra.Command {
 		Short: "remove-by-username removes all map roles and map users from the aws-auth configmap",
 		Run: func(cmd *cobra.Command, args []string) {
 			options := kubeOptions{
-				AsUser:   upsertArgs.AsUser,
-				AsGroups: upsertArgs.AsGroups,
+				AsUser:   removeArgs.AsUser,
+				AsGroups: removeArgs.AsGroups,
 			}
 
-			k, err := getKubernetesClient(getArgs.KubeconfigPath, options)
+			k, err := getKubernetesClient(removeArgs.KubeconfigPath, options)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -82,6 +82,8 @@ func removeByUsernameCmd() *cobra.Command {
 	command.Flags().DurationVar(&removeArgs.MinRetryTime, "retry-min-time", time.Millisecond*200, "Minimum wait interval")
 	command.Flags().DurationVar(&removeArgs.MaxRetryTime, "retry-max-time", time.Second*30, "Maximum wait interval")
 	command.Flags().IntVar(&removeArgs.MaxRetryCount, "retry-max-count", 12, "Maximum number of retries before giving up")
+	command.Flags().StringVar(&removeArgs.AsUser, "as", "", "Username to impersonate for the operation")
+	command.Flags().StringSliceVar(&removeArgs.AsGroups, "as-group", []string{}, "Group to impersonate for the operation, this flag can be repeated to specify multiple groups")
 	return command
 }
 
@@ -100,6 +102,6 @@ func init() {
 	removeCmd.Flags().DurationVar(&removeArgs.MinRetryTime, "retry-min-time", time.Millisecond*200, "Minimum wait interval")
 	removeCmd.Flags().DurationVar(&removeArgs.MaxRetryTime, "retry-max-time", time.Second*30, "Maximum wait interval")
 	removeCmd.Flags().IntVar(&removeArgs.MaxRetryCount, "retry-max-count", 12, "Maximum number of retries before giving up")
-	removeCmd.Flags().StringVar(&upsertArgs.AsUser, "as", "", "Username to impersonate for the operation")
-	removeCmd.Flags().StringSliceVar(&upsertArgs.AsGroups, "as-group", []string{}, "Group to impersonate for the operation, this flag can be repeated to specify multiple groups")
+	removeCmd.Flags().StringVar(&removeArgs.AsUser, "as", "", "Username to impersonate for the operation")
+	removeCmd.Flags().StringSliceVar(&removeArgs.AsGroups, "as-group", []string{}, "Group to impersonate for the operation, this flag can be repeated to specify multiple groups")
 }
