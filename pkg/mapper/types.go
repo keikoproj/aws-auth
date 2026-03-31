@@ -101,36 +101,36 @@ type MapperArguments struct {
 	AsGroups []string
 }
 
-func (args *MapperArguments) Validate() {
+func (args *MapperArguments) Validate() error {
 	if args.WithRetries {
 		if args.MaxRetryCount < 1 {
-			log.Fatal("error: --retry-max-count is invalid, must be greater than zero")
+			return fmt.Errorf("error: --retry-max-count is invalid, must be greater than zero")
 		}
 	}
 
 	if args.RoleARN == "" && args.MapRoles {
-		log.Fatal("error: --rolearn not provided")
+		return fmt.Errorf("error: --rolearn not provided")
 	}
 
 	if args.UserARN == "" && args.MapUsers {
-		log.Fatal("error: --userarn not provided")
+		return fmt.Errorf("error: --userarn not provided")
 	}
 
 	if args.MapUsers && args.MapRoles {
-		log.Fatal("error: --mapusers and --maproles are mutually exclusive")
+		return fmt.Errorf("error: --mapusers and --maproles are mutually exclusive")
 	}
 
 	if args.OperationType == OperationUpsert && args.Username == "" {
-		log.Fatal("error: --username not provided")
+		return fmt.Errorf("error: --username not provided")
 	}
 
 	if args.OperationType == OperationGet && args.Format != "table" {
-		log.Fatal("error: --format only supports value 'table'")
+		return fmt.Errorf("error: --format only supports value 'table'")
 	}
 
 	if !args.MapUsers && !args.MapRoles {
 		if !args.IsGlobal {
-			log.Fatal("error: must select --mapusers or --maproles")
+			return fmt.Errorf("error: must select --mapusers or --maproles")
 		}
 	}
 
@@ -138,6 +138,7 @@ func (args *MapperArguments) Validate() {
 		args.UpdateUsername = &UpdateUsernameDefaultValue
 	}
 
+	return nil
 }
 
 // RolesAuthMap is the basic structure of a mapRoles authentication object

@@ -129,3 +129,80 @@ func TestWithRetry_ExhaustsRetries(t *testing.T) {
 	g.Expect(err.Error()).To(gomega.ContainSubstring("waiter timed out"))
 	g.Expect(calls).To(gomega.Equal(2))
 }
+
+func TestValidate_InvalidRetryMaxCount(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{WithRetries: true, MaxRetryCount: 0, MapRoles: true, RoleARN: "arn"}
+	err := args.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("--retry-max-count"))
+}
+
+func TestValidate_MissingRoleARN(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{MapRoles: true, RoleARN: ""}
+	err := args.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("--rolearn not provided"))
+}
+
+func TestValidate_MissingUserARN(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{MapUsers: true, UserARN: ""}
+	err := args.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("--userarn not provided"))
+}
+
+func TestValidate_MutuallyExclusiveFlags(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{MapUsers: true, MapRoles: true, UserARN: "arn", RoleARN: "arn"}
+	err := args.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("mutually exclusive"))
+}
+
+func TestValidate_MissingUsername(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{OperationType: OperationUpsert, MapRoles: true, RoleARN: "arn"}
+	err := args.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("--username not provided"))
+}
+
+func TestValidate_InvalidFormat(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{OperationType: OperationGet, Format: "json", IsGlobal: true}
+	err := args.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("--format"))
+}
+
+func TestValidate_MissingMapSelection(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{MapUsers: false, MapRoles: false, IsGlobal: false}
+	err := args.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("must select"))
+}
+
+func TestValidate_Success(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{
+		OperationType: OperationUpsert,
+		MapRoles:      true,
+		RoleARN:       "arn:aws:iam::123:role/foo",
+		Username:      "myuser",
+	}
+	err := args.Validate()
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(args.UpdateUsername).NotTo(gomega.BeNil())
+	g.Expect(*args.UpdateUsername).To(gomega.BeTrue())
+}
+
+func TestValidate_GlobalSkipsMapSelection(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{IsGlobal: true}
+	err := args.Validate()
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+}

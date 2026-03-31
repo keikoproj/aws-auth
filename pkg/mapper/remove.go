@@ -24,7 +24,9 @@ import (
 
 // Remove removes by match of provided arguments
 func (b *AuthMapper) Remove(args *MapperArguments) error {
-	args.Validate()
+	if err := args.Validate(); err != nil {
+		return err
+	}
 
 	if args.WithRetries {
 		_, err := WithRetry(func() (interface{}, error) {
@@ -38,7 +40,9 @@ func (b *AuthMapper) Remove(args *MapperArguments) error {
 // RemoveByUsername removes all map roles and map users that match provided username
 func (b *AuthMapper) RemoveByUsername(args *MapperArguments) error {
 	args.IsGlobal = true
-	args.Validate()
+	if err := args.Validate(); err != nil {
+		return err
+	}
 	if args.WithRetries {
 		_, err := WithRetry(func() (interface{}, error) {
 			return nil, b.removeAuthByUser(args)

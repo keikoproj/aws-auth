@@ -18,7 +18,9 @@ package mapper
 // Upsert update or inserts by rolearn
 func (b *AuthMapper) Get(args *MapperArguments) (AwsAuthData, error) {
 	args.IsGlobal = true
-	args.Validate()
+	if err := args.Validate(); err != nil {
+		return AwsAuthData{}, err
+	}
 
 	if args.WithRetries {
 		out, err := WithRetry(func() (interface{}, error) {

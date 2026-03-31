@@ -22,7 +22,9 @@ import (
 
 // Upsert update or inserts by rolearn
 func (b *AuthMapper) Upsert(args *MapperArguments) error {
-	args.Validate()
+	if err := args.Validate(); err != nil {
+		return err
+	}
 
 	if args.WithRetries {
 		_, err := WithRetry(func() (interface{}, error) {
