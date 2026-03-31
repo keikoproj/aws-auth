@@ -39,8 +39,8 @@ var getCmd = &cobra.Command{
 	Long:  `get allows a user to output the aws-auth configmap entires in various formats`,
 	Run: func(cmd *cobra.Command, args []string) {
 		options := kubeOptions{
-			AsUser:   upsertArgs.AsUser,
-			AsGroups: upsertArgs.AsGroups,
+			AsUser:   getArgs.AsUser,
+			AsGroups: getArgs.AsGroups,
 		}
 
 		k, err := getKubernetesClient(getArgs.KubeconfigPath, options)
@@ -107,6 +107,6 @@ func init() {
 	rootCmd.AddCommand(getCmd)
 	getCmd.Flags().StringVar(&getArgs.KubeconfigPath, "kubeconfig", "", "Path to kubeconfig")
 	getCmd.Flags().StringVar(&getArgs.Format, "format", "table", "The format in which to display results (currently only 'table' supported)")
-	getCmd.Flags().StringVar(&upsertArgs.AsUser, "as", "", "Username to impersonate for the operation")
-	getCmd.Flags().StringSliceVar(&upsertArgs.AsGroups, "as-group", []string{}, "Group to impersonate for the operation, this flag can be repeated to specify multiple groups")
+	getCmd.Flags().StringVar(&getArgs.AsUser, "as", "", "Username to impersonate for the operation")
+	getCmd.Flags().StringSliceVar(&getArgs.AsGroups, "as-group", []string{}, "Group to impersonate for the operation, this flag can be repeated to specify multiple groups")
 }
