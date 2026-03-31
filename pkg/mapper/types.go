@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -27,22 +28,17 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func init() {
-	log.SetFlags(0)
-
-}
-
 type AuthMapper struct {
 	KubernetesClient kubernetes.Interface
-	LoggingEnabled   bool
+	Logger           *log.Logger
 }
 
 func New(client kubernetes.Interface, isCommandline bool) *AuthMapper {
-	var mapper = &AuthMapper{}
-	mapper.KubernetesClient = client
-
-	if !isCommandline {
-		log.SetOutput(io.Discard)
+	mapper := &AuthMapper{KubernetesClient: client}
+	if isCommandline {
+		mapper.Logger = log.New(os.Stderr, "", 0)
+	} else {
+		mapper.Logger = log.New(io.Discard, "", 0)
 	}
 	return mapper
 }
@@ -233,8 +229,7 @@ func (r *RolesAuthMap) AppendGroups(g []string) *RolesAuthMap {
 
 type RetriableFunction func() (interface{}, error)
 
-func WithRetry(fn RetriableFunction, args *MapperArguments) (interface{}, error) {
-	// Update the config map and return an AuthMap
+func (b *AuthMapper) WithRetry(fn RetriableFunction, args *MapperArguments) (interface{}, error) {
 	var (
 		counter int
 		err     error
@@ -251,7 +246,7 @@ func WithRetry(fn RetriableFunction, args *MapperArguments) (interface{}, error)
 
 		if out, err = fn(); err != nil {
 			d := bkoff.Duration()
-			log.Printf("error: %v: will retry after %v", err, d)
+			b.Logger.Printf("error: %v: will retry after %v", err, d)
 			time.Sleep(d)
 			counter++
 			continue

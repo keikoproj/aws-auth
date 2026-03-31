@@ -18,7 +18,6 @@ package mapper
 import (
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
 )
 
@@ -29,7 +28,7 @@ func (b *AuthMapper) Remove(args *MapperArguments) error {
 	}
 
 	if args.WithRetries {
-		_, err := WithRetry(func() (interface{}, error) {
+		_, err := b.WithRetry(func() (interface{}, error) {
 			return nil, b.removeAuth(args)
 		}, args)
 		return err
@@ -44,7 +43,7 @@ func (b *AuthMapper) RemoveByUsername(args *MapperArguments) error {
 		return err
 	}
 	if args.WithRetries {
-		_, err := WithRetry(func() (interface{}, error) {
+		_, err := b.WithRetry(func() (interface{}, error) {
 			return nil, b.removeAuthByUser(args)
 		}, args)
 		return err
@@ -84,7 +83,7 @@ func (b *AuthMapper) removeAuthByUser(args *MapperArguments) error {
 
 	if !removed {
 		msg := fmt.Sprintf("failed to remove based on username %v, found zero matches\n", args.Username)
-		log.Print(msg)
+		b.Logger.Print(msg)
 		if args.Force {
 			return nil
 		}
@@ -109,13 +108,13 @@ func (b *AuthMapper) removeAuth(args *MapperArguments) error {
 		newMap, ok := removeRole(authData.MapRoles, rolesResource)
 
 		if !ok {
-			log.Printf("failed to remove %v, could not find exact match\n", rolesResource.RoleARN)
+			b.Logger.Printf("failed to remove %v, could not find exact match\n", rolesResource.RoleARN)
 			if args.Force {
 				return nil
 			}
 			return errors.New("could not find rolemap")
 		}
-		log.Printf("removed %v from aws-auth\n", rolesResource.RoleARN)
+		b.Logger.Printf("removed %v from aws-auth\n", rolesResource.RoleARN)
 		authData.SetMapRoles(newMap)
 	}
 
@@ -124,13 +123,13 @@ func (b *AuthMapper) removeAuth(args *MapperArguments) error {
 		newMap, ok := removeUser(authData.MapUsers, usersResource)
 
 		if !ok {
-			log.Printf("failed to remove %v, could not find exact match\n", usersResource.UserARN)
+			b.Logger.Printf("failed to remove %v, could not find exact match\n", usersResource.UserARN)
 			if args.Force {
 				return nil
 			}
 			return errors.New("could not find usermap")
 		}
-		log.Printf("removed %v from aws-auth\n", usersResource.UserARN)
+		b.Logger.Printf("removed %v from aws-auth\n", usersResource.UserARN)
 		authData.SetMapUsers(newMap)
 	}
 

@@ -16,6 +16,8 @@ limitations under the License.
 package mapper
 
 import (
+	"bytes"
+	"log"
 	"testing"
 	"time"
 
@@ -29,6 +31,37 @@ func TestNew_LoggingDisabled(t *testing.T) {
 	mapper := New(client, false)
 	g.Expect(mapper).NotTo(gomega.BeNil())
 	g.Expect(mapper.KubernetesClient).To(gomega.Equal(client))
+	g.Expect(mapper.Logger).NotTo(gomega.BeNil())
+	// Logger should silently discard output
+	mapper.Logger.Print("test")
+}
+
+func TestNew_LoggingEnabled(t *testing.T) {
+	g := gomega.NewWithT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+	g.Expect(mapper).NotTo(gomega.BeNil())
+	g.Expect(mapper.Logger).NotTo(gomega.BeNil())
+}
+
+func TestNew_IndependentLoggers(t *testing.T) {
+	g := gomega.NewWithT(t)
+	client := fake.NewSimpleClientset()
+
+	// Create one mapper with logging disabled, one with a custom buffer
+	silent := New(client, false)
+	var buf bytes.Buffer
+	loud := &AuthMapper{
+		KubernetesClient: client,
+		Logger:           log.New(&buf, "", 0),
+	}
+
+	// Writing to the silent logger must not affect the loud logger
+	silent.Logger.Print("should be discarded")
+	loud.Logger.Print("should appear")
+
+	g.Expect(buf.String()).To(gomega.ContainSubstring("should appear"))
+	g.Expect(buf.String()).NotTo(gomega.ContainSubstring("should be discarded"))
 }
 
 func TestNewRolesAuthMap(t *testing.T) {
@@ -98,12 +131,14 @@ func TestSetters_UsersAuthMap(t *testing.T) {
 
 func TestWithRetry_SucceedsFirstAttempt(t *testing.T) {
 	g := gomega.NewWithT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
 	calls := 0
 	fn := RetriableFunction(func() (interface{}, error) {
 		calls++
 		return "ok", nil
 	})
-	out, err := WithRetry(fn, &MapperArguments{
+	out, err := mapper.WithRetry(fn, &MapperArguments{
 		MaxRetryCount: 3,
 		MinRetryTime:  1 * time.Millisecond,
 		MaxRetryTime:  2 * time.Millisecond,
@@ -115,12 +150,14 @@ func TestWithRetry_SucceedsFirstAttempt(t *testing.T) {
 
 func TestWithRetry_ExhaustsRetries(t *testing.T) {
 	g := gomega.NewWithT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
 	calls := 0
 	fn := RetriableFunction(func() (interface{}, error) {
 		calls++
 		return nil, gomega.StopTrying("always fails")
 	})
-	_, err := WithRetry(fn, &MapperArguments{
+	_, err := mapper.WithRetry(fn, &MapperArguments{
 		MaxRetryCount: 2,
 		MinRetryTime:  1 * time.Millisecond,
 		MaxRetryTime:  2 * time.Millisecond,

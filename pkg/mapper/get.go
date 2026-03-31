@@ -23,7 +23,7 @@ func (b *AuthMapper) Get(args *MapperArguments) (AwsAuthData, error) {
 	}
 
 	if args.WithRetries {
-		out, err := WithRetry(func() (interface{}, error) {
+		out, err := b.WithRetry(func() (interface{}, error) {
 			return b.getAuth()
 		}, args)
 		if err != nil {
