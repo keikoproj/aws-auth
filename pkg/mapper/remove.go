@@ -16,18 +16,18 @@ limitations under the License.
 package mapper
 
 import (
-	"errors"
 	"fmt"
-	"log"
 	"reflect"
 )
 
 // Remove removes by match of provided arguments
 func (b *AuthMapper) Remove(args *MapperArguments) error {
-	args.Validate()
+	if err := args.Validate(); err != nil {
+		return err
+	}
 
 	if args.WithRetries {
-		_, err := WithRetry(func() (interface{}, error) {
+		_, err := b.WithRetry(func() (interface{}, error) {
 			return nil, b.removeAuth(args)
 		}, args)
 		return err
@@ -38,9 +38,11 @@ func (b *AuthMapper) Remove(args *MapperArguments) error {
 // RemoveByUsername removes all map roles and map users that match provided username
 func (b *AuthMapper) RemoveByUsername(args *MapperArguments) error {
 	args.IsGlobal = true
-	args.Validate()
+	if err := args.Validate(); err != nil {
+		return err
+	}
 	if args.WithRetries {
-		_, err := WithRetry(func() (interface{}, error) {
+		_, err := b.WithRetry(func() (interface{}, error) {
 			return nil, b.removeAuthByUser(args)
 		}, args)
 		return err
@@ -79,12 +81,10 @@ func (b *AuthMapper) removeAuthByUser(args *MapperArguments) error {
 	}
 
 	if !removed {
-		msg := fmt.Sprintf("failed to remove based on username %v, found zero matches\n", args.Username)
-		log.Print(msg)
 		if args.Force {
 			return nil
 		}
-		return errors.New(msg)
+		return fmt.Errorf("failed to remove based on username %v, found zero matches", args.Username)
 	}
 
 	authData.SetMapRoles(newRolesAuthMap)
@@ -105,13 +105,12 @@ func (b *AuthMapper) removeAuth(args *MapperArguments) error {
 		newMap, ok := removeRole(authData.MapRoles, rolesResource)
 
 		if !ok {
-			log.Printf("failed to remove %v, could not find exact match\n", rolesResource.RoleARN)
 			if args.Force {
 				return nil
 			}
-			return errors.New("could not find rolemap")
+			return fmt.Errorf("failed to remove %v, could not find exact match", rolesResource.RoleARN)
 		}
-		log.Printf("removed %v from aws-auth\n", rolesResource.RoleARN)
+		b.Logger.Printf("removed %v from aws-auth\n", rolesResource.RoleARN)
 		authData.SetMapRoles(newMap)
 	}
 
@@ -120,13 +119,12 @@ func (b *AuthMapper) removeAuth(args *MapperArguments) error {
 		newMap, ok := removeUser(authData.MapUsers, usersResource)
 
 		if !ok {
-			log.Printf("failed to remove %v, could not find exact match\n", usersResource.UserARN)
 			if args.Force {
 				return nil
 			}
-			return errors.New("could not find usermap")
+			return fmt.Errorf("failed to remove %v, could not find exact match", usersResource.UserARN)
 		}
-		log.Printf("removed %v from aws-auth\n", usersResource.UserARN)
+		b.Logger.Printf("removed %v from aws-auth\n", usersResource.UserARN)
 		authData.SetMapUsers(newMap)
 	}
 
