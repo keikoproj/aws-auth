@@ -9,9 +9,9 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.10.2
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.33.9
-	k8s.io/apimachinery v0.33.9
-	k8s.io/client-go v0.33.9
+	k8s.io/api v0.33.10
+	k8s.io/apimachinery v0.33.10
+	k8s.io/client-go v0.33.10
 )
 
 require (
