@@ -23,8 +23,6 @@ jobs:
   golangci:
     name: Go Linting
     runs-on: ubuntu-latest
-    # Allow job to succeed even with lint issues for now
-    continue-on-error: true
     steps:
       - name: Check out code
         uses: actions/checkout@v6
