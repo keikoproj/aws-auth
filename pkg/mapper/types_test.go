@@ -16,6 +16,8 @@ limitations under the License.
 package mapper
 
 import (
+	"bytes"
+	"log"
 	"testing"
 	"time"
 
@@ -29,6 +31,37 @@ func TestNew_LoggingDisabled(t *testing.T) {
 	mapper := New(client, false)
 	g.Expect(mapper).NotTo(gomega.BeNil())
 	g.Expect(mapper.KubernetesClient).To(gomega.Equal(client))
+	g.Expect(mapper.Logger).NotTo(gomega.BeNil())
+	// Logger should silently discard output
+	mapper.Logger.Print("test")
+}
+
+func TestNew_LoggingEnabled(t *testing.T) {
+	g := gomega.NewWithT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
+	g.Expect(mapper).NotTo(gomega.BeNil())
+	g.Expect(mapper.Logger).NotTo(gomega.BeNil())
+}
+
+func TestNew_IndependentLoggers(t *testing.T) {
+	g := gomega.NewWithT(t)
+	client := fake.NewSimpleClientset()
+
+	// Create one mapper with logging disabled, one with a custom buffer
+	silent := New(client, false)
+	var buf bytes.Buffer
+	loud := &AuthMapper{
+		KubernetesClient: client,
+		Logger:           log.New(&buf, "", 0),
+	}
+
+	// Writing to the silent logger must not affect the loud logger
+	silent.Logger.Print("should be discarded")
+	loud.Logger.Print("should appear")
+
+	g.Expect(buf.String()).To(gomega.ContainSubstring("should appear"))
+	g.Expect(buf.String()).NotTo(gomega.ContainSubstring("should be discarded"))
 }
 
 func TestNewRolesAuthMap(t *testing.T) {
@@ -98,12 +131,14 @@ func TestSetters_UsersAuthMap(t *testing.T) {
 
 func TestWithRetry_SucceedsFirstAttempt(t *testing.T) {
 	g := gomega.NewWithT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
 	calls := 0
 	fn := RetriableFunction(func() (interface{}, error) {
 		calls++
 		return "ok", nil
 	})
-	out, err := WithRetry(fn, &MapperArguments{
+	out, err := mapper.WithRetry(fn, &MapperArguments{
 		MaxRetryCount: 3,
 		MinRetryTime:  1 * time.Millisecond,
 		MaxRetryTime:  2 * time.Millisecond,
@@ -115,12 +150,14 @@ func TestWithRetry_SucceedsFirstAttempt(t *testing.T) {
 
 func TestWithRetry_ExhaustsRetries(t *testing.T) {
 	g := gomega.NewWithT(t)
+	client := fake.NewSimpleClientset()
+	mapper := New(client, true)
 	calls := 0
 	fn := RetriableFunction(func() (interface{}, error) {
 		calls++
 		return nil, gomega.StopTrying("always fails")
 	})
-	_, err := WithRetry(fn, &MapperArguments{
+	_, err := mapper.WithRetry(fn, &MapperArguments{
 		MaxRetryCount: 2,
 		MinRetryTime:  1 * time.Millisecond,
 		MaxRetryTime:  2 * time.Millisecond,
@@ -128,4 +165,81 @@ func TestWithRetry_ExhaustsRetries(t *testing.T) {
 	g.Expect(err).To(gomega.HaveOccurred())
 	g.Expect(err.Error()).To(gomega.ContainSubstring("waiter timed out"))
 	g.Expect(calls).To(gomega.Equal(2))
+}
+
+func TestValidate_InvalidRetryMaxCount(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{WithRetries: true, MaxRetryCount: 0, MapRoles: true, RoleARN: "arn"}
+	err := args.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("--retry-max-count"))
+}
+
+func TestValidate_MissingRoleARN(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{MapRoles: true, RoleARN: ""}
+	err := args.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("--rolearn not provided"))
+}
+
+func TestValidate_MissingUserARN(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{MapUsers: true, UserARN: ""}
+	err := args.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("--userarn not provided"))
+}
+
+func TestValidate_MutuallyExclusiveFlags(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{MapUsers: true, MapRoles: true, UserARN: "arn", RoleARN: "arn"}
+	err := args.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("mutually exclusive"))
+}
+
+func TestValidate_MissingUsername(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{OperationType: OperationUpsert, MapRoles: true, RoleARN: "arn"}
+	err := args.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("--username not provided"))
+}
+
+func TestValidate_InvalidFormat(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{OperationType: OperationGet, Format: "json", IsGlobal: true}
+	err := args.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("--format"))
+}
+
+func TestValidate_MissingMapSelection(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{MapUsers: false, MapRoles: false, IsGlobal: false}
+	err := args.Validate()
+	g.Expect(err).To(gomega.HaveOccurred())
+	g.Expect(err.Error()).To(gomega.ContainSubstring("must select"))
+}
+
+func TestValidate_Success(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{
+		OperationType: OperationUpsert,
+		MapRoles:      true,
+		RoleARN:       "arn:aws:iam::123:role/foo",
+		Username:      "myuser",
+	}
+	err := args.Validate()
+	g.Expect(err).NotTo(gomega.HaveOccurred())
+	g.Expect(args.UpdateUsername).NotTo(gomega.BeNil())
+	g.Expect(*args.UpdateUsername).To(gomega.BeTrue())
+}
+
+func TestValidate_GlobalSkipsMapSelection(t *testing.T) {
+	g := gomega.NewWithT(t)
+	args := &MapperArguments{IsGlobal: true}
+	err := args.Validate()
+	g.Expect(err).NotTo(gomega.HaveOccurred())
 }
