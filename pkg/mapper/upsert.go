@@ -16,16 +16,17 @@ limitations under the License.
 package mapper
 
 import (
-	"log"
 	"reflect"
 )
 
 // Upsert update or inserts by rolearn
 func (b *AuthMapper) Upsert(args *MapperArguments) error {
-	args.Validate()
+	if err := args.Validate(); err != nil {
+		return err
+	}
 
 	if args.WithRetries {
-		_, err := WithRetry(func() (interface{}, error) {
+		_, err := b.WithRetry(func() (interface{}, error) {
 			return nil, b.upsertAuth(args)
 		}, args)
 		return err
@@ -130,7 +131,7 @@ func (b *AuthMapper) UpsertMultiple(newMapRoles []*RolesAuthMap, newMapUsers []*
 	}
 
 	if !updated {
-		log.Printf("found zero changes to update, configmap is not changed \n")
+		b.Logger.Printf("found zero changes to update, configmap is not changed \n")
 		return nil
 	}
 
@@ -163,9 +164,9 @@ func (b *AuthMapper) upsertAuth(args *MapperArguments) error {
 
 		newMap, ok := upsertRole(authData.MapRoles, roleResource, opts)
 		if ok {
-			log.Printf("role %v has been updated\n", roleResource.RoleARN)
+			b.Logger.Printf("role %v has been updated\n", roleResource.RoleARN)
 		} else {
-			log.Printf("no updates needed to %v\n", roleResource.RoleARN)
+			b.Logger.Printf("no updates needed to %v\n", roleResource.RoleARN)
 		}
 		authData.SetMapRoles(newMap)
 	}
@@ -175,9 +176,9 @@ func (b *AuthMapper) upsertAuth(args *MapperArguments) error {
 
 		newMap, ok := upsertUser(authData.MapUsers, userResource, opts)
 		if ok {
-			log.Printf("role %v has been updated\n", userResource.UserARN)
+			b.Logger.Printf("role %v has been updated\n", userResource.UserARN)
 		} else {
-			log.Printf("no updates needed to %v\n", userResource.UserARN)
+			b.Logger.Printf("no updates needed to %v\n", userResource.UserARN)
 		}
 		authData.SetMapUsers(newMap)
 	}
