@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/jpillora/backoff v1.0.0
-	github.com/olekukonko/tablewriter v1.1.4
+	github.com/olekukonko/tablewriter v1.1.5
 	github.com/onsi/gomega v1.43.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.10.2
