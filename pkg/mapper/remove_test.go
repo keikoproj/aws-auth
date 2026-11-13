@@ -330,7 +330,7 @@ func TestMapper_RemoveRole_NotFound_ErrorMessage(t *testing.T) {
 		RoleARN:  "arn:aws:iam::00000000000:role/nonexistent",
 	})
 	g.Expect(err).To(gomega.HaveOccurred())
-	g.Expect(err.Error()).To(gomega.ContainSubstring("rolemap"))
+	g.Expect(err.Error()).To(gomega.ContainSubstring("could not find exact match"))
 }
 
 func TestMapper_RemoveUser_NotFound_ErrorMessage(t *testing.T) {
@@ -345,7 +345,7 @@ func TestMapper_RemoveUser_NotFound_ErrorMessage(t *testing.T) {
 		UserARN:  "arn:aws:iam::00000000000:user/nonexistent",
 	})
 	g.Expect(err).To(gomega.HaveOccurred())
-	g.Expect(err.Error()).To(gomega.ContainSubstring("usermap"))
+	g.Expect(err.Error()).To(gomega.ContainSubstring("could not find exact match"))
 }
 
 func TestMapper_RemoveWithRetries(t *testing.T) {
